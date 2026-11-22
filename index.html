@@ -1,0 +1,2199 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>صياد السمك | Fishing Adventure</title>
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#dff4ff;--fg:#0b2a44;--cd:#ffffff;--cd2:#f0f9ff;--ac:#0a84c6;--ac2:#065f92;--gd:#f5b301;--ok:#16a34a;--bad:#dc2626;--bd:rgba(10,132,198,.22)
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#061e33;--fg:#e6f6ff;--cd:#0d3554;--cd2:#114266;--ac:#37b4f0;--ac2:#1d8cc4;--bd:rgba(55,180,240,.25)
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#061e33;--fg:#e6f6ff;--cd:#0d3554;--cd2:#114266;--ac:#37b4f0;--ac2:#1d8cc4;--bd:rgba(55,180,240,.25)
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,"Segoe UI",Tahoma,Arial,sans-serif;min-height:100vh}
+button,select,input,textarea{font:inherit;color:inherit}
+button{background:var(--ac);color:#fff;border:0;border-radius:12px;padding:9px 15px;cursor:pointer;margin:3px;font-weight:600;transition:transform .12s,background .15s,opacity .15s}
+button:hover{background:var(--ac2)}
+button:active{transform:scale(.96)}
+button[disabled]{opacity:.45;cursor:not-allowed}
+button.sec{background:var(--cd2);color:var(--fg);border:1px solid var(--bd)}
+button.ok{background:var(--ok);color:#fff}
+button.bad{background:var(--bad);color:#fff}
+button.gold{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff}
+select,input[type="text"],input[type="number"],input[type="password"],textarea{
+  background:var(--cd2);border:1px solid var(--bd);border-radius:10px;padding:8px 10px
+}
+input[type="range"]{accent-color:var(--ac);cursor:pointer}
+
+/* Start Screen */
+#start{
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:20px;background:linear-gradient(180deg,#7dd3fc 0%,#0284c7 55%,#06203a 100%);
+  color:#fff;overflow:hidden;position:relative
+}
+#start h1{font-size:2.5rem;margin:.2em 0;text-shadow:0 4px 12px rgba(0,0,0,.35)}
+.sw{position:absolute;font-size:2.2rem;animation:swim 11s linear infinite;opacity:.85;pointer-events:none}
+@keyframes swim{from{left:-12%}to{left:112%}}
+.dev{margin:10px 0 18px;font-weight:700;background:rgba(0,0,0,.22);padding:8px 18px;border-radius:20px}
+.dev small{display:block;opacity:.9;font-weight:500}
+
+/* App Shell */
+#app{max-width:980px;margin:auto;padding:10px}
+#top{
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;
+  background:var(--cd);border:1px solid var(--bd);border-radius:16px;padding:10px 14px;margin-bottom:8px;
+  box-shadow:0 4px 14px rgba(0,0,0,.06)
+}
+.hud-pill{
+  display:inline-flex;align-items:center;gap:5px;background:var(--cd2);padding:5px 10px;
+  border-radius:12px;font-weight:700;font-size:.92rem;border:1px solid var(--bd)
+}
+.icon-btn{padding:5px 10px;margin:0;border-radius:10px;font-size:.9rem}
+#tabs{display:flex;gap:5px;overflow-x:auto;padding-bottom:4px;margin-bottom:8px}
+#tabs button{white-space:nowrap;background:var(--cd);color:var(--fg);border:1px solid var(--bd);margin:0}
+#tabs button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+
+.box{
+  background:var(--cd);border:1px solid var(--bd);border-radius:16px;padding:13px;margin:8px 0;
+  box-shadow:0 4px 14px rgba(0,0,0,.05)
+}
+canvas{width:100%;max-width:100%;border-radius:16px;display:block;touch-action:manipulation;box-shadow:0 6px 20px rgba(0,0,0,.18)}
+
+/* Depth & Controls Bar */
+.ctrl-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-top:4px}
+.depth-panel{
+  flex:1 1 320px;background:var(--cd2);border:1px solid var(--bd);border-radius:12px;padding:8px 12px
+}
+.depth-head{display:flex;justify-content:space-between;align-items:center;font-size:.9rem;font-weight:700;margin-bottom:4px}
+.depth-panel input[type="range"]{width:100%}
+.gear-strip{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;font-size:.85rem}
+.gear-badge{background:var(--cd2);border:1px solid var(--bd);border-radius:10px;padding:4px 9px;font-weight:600}
+.gear-badge.warn{border-color:var(--bad);color:var(--bad)}
+
+/* Grids & Cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px}
+.card{
+  background:var(--cd);border-radius:16px;padding:12px;text-align:center;
+  border:2px solid var(--bd);display:flex;flex-direction:column;justify-content:space-between;gap:4px
+}
+.card.equipped{border-color:var(--ok);box-shadow:0 0 0 2px rgba(22,163,74,.2)}
+.card.dim{opacity:.55}
+.card small{display:block;opacity:.85;font-size:.82rem}
+.cover{font-size:2.3rem}
+.subtabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.subtabs button{background:var(--cd2);color:var(--fg);border:1px solid var(--bd)}
+.subtabs button.on{background:var(--ac);color:#fff}
+
+.chip{display:inline-block;margin:3px;padding:7px 12px;border-radius:20px;border:2px solid var(--ac);cursor:pointer;background:var(--cd);font-size:.9rem}
+.chip.on{background:var(--ac);color:#fff}
+
+/* Rarity Borders */
+.r0{border-color:#94a3b8}
+.r1{border-color:#22c55e}
+.r2{border-color:#3b82f6}
+.r3{border-color:#a855f7}
+.r4{border-color:#f59e0b;box-shadow:0 0 14px rgba(245,158,11,.45)}
+
+/* Question Bank List */
+.qb-list{max-height:380px;overflow-y:auto;border:1px solid var(--bd);border-radius:12px;padding:6px;background:var(--cd2)}
+.qb-item{
+  display:flex;align-items:flex-start;gap:8px;padding:8px;border-bottom:1px solid var(--bd);
+  background:var(--cd);border-radius:10px;margin-bottom:6px
+}
+.qb-item:last-child{margin-bottom:0}
+.qb-item input[type="checkbox"]{width:18px;height:18px;margin-top:3px;accent-color:var(--ac);cursor:pointer}
+.qb-meta{font-size:.8rem;opacity:.8;margin-top:2px}
+.opt-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}
+@media(max-width:560px){.opt-grid{grid-template-columns:1fr}}
+.opt-row{display:flex;align-items:center;gap:6px}
+.opt-row input[type="text"]{flex:1}
+.cat-bar{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;align-items:center}
+.cat-chip{padding:6px 12px;border-radius:18px;border:1.5px solid var(--ac);background:var(--cd);color:var(--fg);cursor:pointer;font-size:.86rem;font-weight:600;transition:.15s}
+.cat-chip.on{background:var(--ac);color:#fff}
+.ocean-stats{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;font-size:.8rem;margin-top:4px;padding-top:4px;border-top:1px dashed var(--bd)}
+
+/* Modal */
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:14px;z-index:30;backdrop-filter:blur(2px)}
+#modal[hidden],[hidden]{display:none!important}
+#mbox{background:var(--cd);color:var(--fg);border-radius:18px;padding:18px;max-width:500px;width:100%;max-height:90vh;overflow:auto;animation:pop .22s;border:1px solid var(--bd)}
+@keyframes pop{from{transform:scale(.82);opacity:0}to{transform:none;opacity:1}}
+.o{display:block;width:100%;text-align:start;margin:7px 0;padding:11px 14px;border-radius:12px;font-size:1rem}
+.q{font-size:1.15rem;font-weight:700;line-height:1.5;margin-top:0}
+textarea{width:100%}
+</style>
+</head>
+<body>
+
+<div id="start">
+  <span class="sw" style="top:16%">🐠</span>
+  <span class="sw" style="top:42%;animation-delay:-4s">🐟</span>
+  <span class="sw" style="top:68%;animation-delay:-7s">🦈</span>
+  <div style="font-size:4.2rem">🚤🎣</div>
+  <h1 id="ti"></h1>
+  <div class="dev" id="dv"></div>
+  <div>
+    <button id="s-go" class="gold" style="font-size:1.1rem;padding:12px 24px"></button>
+    <button id="s-qb"></button>
+    <button id="s-lib"></button>
+    <button id="s-ab" class="sec"></button>
+  </div>
+  <div id="s-lg" style="margin-top:12px"></div>
+</div>
+
+<div id="app" hidden>
+  <div id="top"></div>
+  <div id="tabs"></div>
+
+  <div id="fishsec">
+    <canvas id="cv" width="720" height="410"></canvas>
+    <div class="box">
+      <div class="ctrl-row">
+        <div>
+          <button id="bc" style="font-size:1.05rem;padding:11px 20px"></button>
+          <button id="bswitch" class="sec"></button>
+        </div>
+        <div class="depth-panel">
+          <div class="depth-head">
+            <span id="dp-lbl"></span>
+            <span id="dp-val" style="color:var(--ac)"></span>
+          </div>
+          <input id="dp-sl" type="range" min="5" max="20" step="5" value="15">
+          <div style="display:flex;justify-content:space-between;font-size:.78rem;opacity:.85;margin-top:2px">
+            <span id="dp-unl"></span>
+            <span id="dp-cap"></span>
+          </div>
+          <div class="ocean-stats">
+            <span id="oc-zone" style="font-weight:700;color:var(--ac)"></span>
+            <span id="oc-width"></span>
+            <span id="oc-rare" style="color:var(--gd);font-weight:700"></span>
+          </div>
+        </div>
+      </div>
+      <div id="hint" style="margin:8px 0 4px;font-weight:700;color:var(--ac)"></div>
+      <div class="gear-strip" id="gear-strip"></div>
+    </div>
+  </div>
+
+  <div id="sec" hidden></div>
+</div>
+
+<div id="modal" hidden><div id="mbox"></div></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- i18n ---------- */
+const T={
+ar:{
+  ti:'صياد السمك',st:'ابدأ الصيد',qb:'📝 بنك الأسئلة',lb:'مكتبة الكتب',lg:'اللغة',se:'الإعدادات',ab:'معلومات اللعبة',
+  f:'🎣 الصيد',m:'💰 السوق',c:'🃏 البطاقات',sh:'🛒 المتجر',
+  cs:'ألقِ السنارة',co:'العملات',lv:'المستوى',xp:'الخبرة',
+  pb:'اختر الكتاب',pg:'صفحة',fr:'من صفحة',to:'إلى صفحة',go:'بدء التدريب',
+  inv:'نطاق غير صحيح أو لم تختر صفحات',nq:'لا توجد أسئلة محددة للتدريب بعد',
+  cm:'🎉 أكملت كل الأسئلة المحددة! تم تجديد الدورة لتواصل الصيد بحرية.',rv:'وضع المراجعة',
+  ok:'إجابة صحيحة! جاري سحب السمكة إلى المركب…',no:'إجابة خاطئة! أفلتت السمكة وسبحت بعيداً',ex:'الصواب',
+  nw:'اكتشاف جديد!',bu:'شراء',ow:'مملوكة',eq:'تجهيز',eqd:'✔ مُجهّز',cf:'تأكيد الشراء؟',nm:'رصيدك لا يكفي',
+  sl:'بيع',sa:'بيع غير النادر',tc:'لوحة المعلم',im:'استيراد',rs:'إعادة تعيين',sn:'الصوت',pn:'الرقم السري',
+  wt:'انتظر اقتراب السمكة والتقاط الطُعم…',rlng:'🎣 إجابة صحيحة! تُسحب السمكة الآن إلى داخل المركب…',
+  ch:'اختر أسئلة من «بنك الأسئلة» أو نطاق صفحات من «مكتبة الكتب» أولاً',
+  emp:'لم يُرفع بعد',qn:'سؤال',pt:'الجزء',pk:'اختر الصفحات التي تريد التدريب عليها',cu:'نطاق مخصص',ad:'إضافة',
+  rod:'صنارة',dp:'العمق',pw:'الحمولة',fd:'مكتشفة',lg2:'السجل المالي',nf:'لا أسماك للبيع حالياً',hd:'الأسماك المصطادة تظهر داخل مركبك حتى تبيعها هنا',
+  shRods:'🎣 الصنارات (9)',shHooks:'🪝 السنون',shAcc:'⚙️ الإكسسوارات (5)',shBoats:'🚤 المراكب (4)',
+  hook:'السن',dur:'المتانة',repair:'تجديد / شراء',predWarn:'⚠️ سمكة مفترسة ألحقت ضرراً بالسن!',
+  hookBroke:'💥 انكسر السن بسبب هجوم سمكة مفترسة! تم تركيب سن برونزي احتياطي (متانة 1). اشترِ سناً أقوى من المتجر!',
+  tooHeavy:'⚖️ هذه السمكة أثقل من حمولة صنارتك الحالية! طوّر الصنارة أو جهّز خيط كيفلار.',
+  dpSel:'عمق الصيد المختار',dpUnl:'المفتوح بالإجابات',dpMax:'حد الصنارة/الثقالة',
+  boatCap:'سعة العرض بالمركب',deckCount:'في المركب',
+  qbTitle:'📝 بنك الأسئلة الشامل والمجالات',qbSingle:'➕ إضافة سؤال فردي',qbBulk:'📋 لصق دفعة أسئلة في أي مجال (20 / 50 / 100+ سؤال)',
+  qbQPh:'اكتب نص السؤال هنا…',qbOptPh:'خيار',qbCatPh:'اسم المجال (مثل: النحو، العلوم، الفقه، الطب…)',
+  qbAddOne:'إضافة السؤال للمجال',qbBulkHint:'اختر المجال أولاً أو اكتب مجالاً جديداً، ثم الصق الأسئلة بصيغة: (السؤال | الإجابة الصحيحة* | خيار 2 | خيار 3) أو أسئلة مرقمة بأسطر متعددة.',
+  qbBulkBtn:'📥 استيراد الأسئلة إلى هذا المجال',qbSample:'إدراج مثال جاهز',
+  qbSelAll:'تحديد الكل',qbDeselAll:'إلغاء التحديد',qbSel20:'أول 20',qbSel50:'أول 50',qbDelSel:'حذف المحدد',
+  qbStartFish:'🎣 ابدأ الصيد بالأسئلة المحددة فوراً',qbFilter:'ابحث في الأسئلة أو المجالات…',
+  qbFields:'📂 المجالات المتاحة (اضغط للتصفية أو اختيار المجال)',qbNewField:'➕ إضافة مجال جديد',qbNewFieldPh:'اكتب اسم المجال الجديد…',
+  qbUseField:'🎯 صِد من هذا المجال فقط',qbRestore:'🔄 استعادة 120 سؤال أساسي',
+  srcBank:'المصدر: بنك الأسئلة',srcBook:'المصدر: مكتبة الكتب',switchSrc:'تبديل مصدر الأسئلة',
+  theme:'المظهر'
+},
+en:{
+  ti:'Fishing Adventure',st:'Start Fishing',qb:'📝 Question Bank',lb:'Book Library',lg:'Language',se:'Settings',ab:'About',
+  f:'🎣 Fishing',m:'💰 Market',c:'🃏 Cards',sh:'🛒 Shop',
+  cs:'Cast Line',co:'Coins',lv:'Level',xp:'XP',
+  pb:'Choose book',pg:'page',fr:'From page',to:'To page',go:'Start training',
+  inv:'Invalid range or no pages chosen',nq:'No questions selected yet',
+  cm:'🎉 Round complete! A fresh cycle has started so you can keep fishing.',rv:'Review mode',
+  ok:'Correct! Reeling the fish into your boat…',no:'Wrong! The fish unhooked and swam away',ex:'Answer',
+  nw:'New discovery!',bu:'Buy',ow:'Owned',eq:'Equip',eqd:'✔ Equipped',cf:'Confirm purchase?',nm:'Not enough coins',
+  sl:'Sell',sa:'Sell non-rare',tc:'Teacher panel',im:'Import',rs:'Reset',sn:'Sound',pn:'PIN',
+  wt:'Waiting for a fish to bite…',rlng:'🎣 Correct! Pulling the catch onto your boat…',
+  ch:'Select questions in “Question Bank” or pages in “Book Library” first',
+  emp:'Not uploaded yet',qn:'questions',pt:'Part',pk:'Choose pages to practice',cu:'Custom range',ad:'Add',
+  rod:'Rod',dp:'Depth',pw:'Max Weight',fd:'discovered',lg2:'Financial Log',nf:'No fish to sell right now',hd:'Caught fish rest inside your boat until sold here',
+  shRods:'🎣 Rods (9)',shHooks:'🪝 Hooks',shAcc:'⚙️ Accessories (5)',shBoats:'🚤 Boats (4)',
+  hook:'Hook',dur:'Durability',repair:'Buy / Restock',predWarn:'⚠️ A predator damaged your hook!',
+  hookBroke:'💥 A predator snapped your hook! Equipped an emergency Bronze hook (1 durability). Buy stronger hooks in the Shop!',
+  tooHeavy:'⚖️ This fish exceeds your rod weight limit! Upgrade your rod or equip Kevlar Line.',
+  dpSel:'Target Depth',dpUnl:'Unlocked Depth',dpMax:'Rod/Sinker Cap',
+  boatCap:'Deck display slots',deckCount:'On boat',
+  qbTitle:'📝 Standalone Question Bank & Fields',qbSingle:'➕ Add Single Question',qbBulk:'📋 Bulk Paste into Field (20 / 50 / 100+)',
+  qbQPh:'Type question text…',qbOptPh:'Option',qbCatPh:'Field / Subject name…',
+  qbAddOne:'Add to Field',qbBulkHint:'Pick or type a Field name, then paste questions: (Question | Correct* | Option 2 | Option 3) or multi-line blocks.',
+  qbBulkBtn:'📥 Import Questions into Field',qbSample:'Insert Sample Batch',
+  qbSelAll:'Select All',qbDeselAll:'Deselect All',qbSel20:'First 20',qbSel50:'First 50',qbDelSel:'Delete Selected',
+  qbStartFish:'🎣 Start Fishing with Selected Questions Now',qbFilter:'Search questions or fields…',
+  qbFields:'📂 Question Fields (Click to filter)',qbNewField:'➕ Add Field',qbNewFieldPh:'New subject/field name…',
+  qbUseField:'🎯 Fish This Field Only',qbRestore:'🔄 Restore 120 Default Questions',
+  srcBank:'Source: Question Bank',srcBook:'Source: Book Library',switchSrc:'Switch Question Source',
+  theme:'Theme'
+},
+fr:{
+  ti:'Aventure de pêche',st:'Pêcher',qb:'📝 Banque de questions',lb:'Bibliothèque',lg:'Langue',se:'Paramètres',ab:'À propos',
+  f:'🎣 Pêche',m:'💰 Marché',c:'🃏 Cartes',sh:'🛒 Boutique',
+  cs:'Lancer la ligne',co:'Pièces',lv:'Niveau',xp:'XP',
+  pb:'Choisir',pg:'page',fr:'De',to:'À',go:'Commencer',
+  inv:'Plage invalide',nq:'Aucune question sélectionnée',
+  cm:'🎉 Toutes les questions sont terminées !',rv:'Mode révision',
+  ok:'Bonne réponse ! Le poisson monte dans le bateau…',no:'Mauvaise réponse ! Le poisson s’enfuit',ex:'Réponse',
+  nw:'Nouvelle découverte !',bu:'Acheter',ow:'Possédé',eq:'Équiper',eqd:'✔ Équipé',cf:'Confirmer ?',nm:'Pièces insuffisantes',
+  sl:'Vendre',sa:'Vendre communs',tc:'Enseignant',im:'Importer',rs:'Réinitialiser',sn:'Son',pn:'PIN',
+  wt:'En attente d’une touche…',rlng:'🎣 Bravo ! Le poisson arrive sur le bateau…',
+  ch:'Choisissez des questions dans la Banque ou la Bibliothèque',
+  emp:'Vide',qn:'questions',pt:'Partie',pk:'Choisissez les pages',cu:'Plage libre',ad:'Ajouter',
+  rod:'Canne',dp:'Profondeur',pw:'Charge max',fd:'découverts',lg2:'Journal',nf:'Aucun poisson',hd:'Vos prises restent dans le bateau jusqu’à la vente',
+  shRods:'🎣 Cannes (9)',shHooks:'🪝 Hameçons',shAcc:'⚙️ Accessoires (5)',shBoats:'🚤 Bateaux (4)',
+  hook:'Hameçon',dur:'Durabilité',repair:'Acheter',predWarn:'⚠️ Un prédateur a abîmé l’hameçon !',
+  hookBroke:'💥 Hameçon cassé par un prédateur ! Hameçon de secours équipé.',
+  tooHeavy:'⚖️ Poisson trop lourd pour votre canne !',
+  dpSel:'Profondeur choisie',dpUnl:'Débloquée',dpMax:'Max canne/plomb',
+  boatCap:'Places sur le pont',deckCount:'À bord',
+  qbTitle:'📝 Banque de questions',qbSingle:'➕ Ajouter une question',qbBulk:'📋 Coller en lot (20 / 40 / 100+)',
+  qbQPh:'Question…',qbOptPh:'Option',qbCatPh:'Catégorie',
+  qbAddOne:'Ajouter',qbBulkBtn:'📥 Tout importer',qbSample:'Exemple',
+  qbSelAll:'Tout cocher',qbDeselAll:'Tout décocher',qbSel20:'20 premiers',qbSel50:'50 premiers',qbDelSel:'Supprimer',
+  qbStartFish:'🎣 Pêcher avec la sélection',qbFilter:'Filtrer…',
+  srcBank:'Source : Banque',srcBook:'Source : Livre',switchSrc:'Changer de source',
+  theme:'Thème'
+},
+ru:{
+  ti:'Рыбалка-приключение',st:'Начать рыбалку',qb:'📝 Банк вопросов',lb:'Библиотека',lg:'Язык',se:'Настройки',ab:'Об игре',
+  f:'🎣 Рыбалка',m:'💰 Рынок',c:'🃏 Карточки',sh:'🛒 Магазин',
+  cs:'Забросить',co:'Монеты',lv:'Уровень',xp:'Опыт',
+  pb:'Выбрать',pg:'стр.',fr:'От',to:'До',go:'Начать',
+  inv:'Неверный диапазон',nq:'Вопросы не выбраны',
+  cm:'🎉 Все вопросы пройдены!',rv:'Повтор ошибок',
+  ok:'Верно! Рыба поднимается в лодку…',no:'Неверно! Рыба уплыла',ex:'Ответ',
+  nw:'Новое открытие!',bu:'Купить',ow:'Куплено',eq:'Выбрать',eqd:'✔ Выбрано',cf:'Купить?',nm:'Мало монет',
+  sl:'Продать',sa:'Продать обычных',tc:'Учитель',im:'Импорт',rs:'Сброс',sn:'Звук',pn:'PIN',
+  wt:'Ждём поклёвку…',rlng:'🎣 Верно! Вытягиваем улов в лодку…',
+  ch:'Выберите вопросы в «Банке вопросов» или в «Библиотеке»',
+  emp:'Пусто',qn:'вопр.',pt:'Часть',pk:'Выберите страницы',cu:'Свой диапазон',ad:'Добавить',
+  rod:'Удочка',dp:'Глубина',pw:'Нагрузка',fd:'открыто',lg2:'Журнал',nf:'Нет рыбы',hd:'Улов лежит в лодке до продажи',
+  shRods:'🎣 Удочки (9)',shHooks:'🪝 Крючки',shAcc:'⚙️ Снасти (5)',shBoats:'🚤 Лодки (4)',
+  hook:'Крючок',dur:'Прочность',repair:'Купить',predWarn:'⚠️ Хищник повредил крючок!',
+  hookBroke:'💥 Хищник сломал крючок! Установлен запасной.',
+  tooHeavy:'⚖️ Рыба тяжелее вашей удочки!',
+  dpSel:'Глубина ловли',dpUnl:'Открыто',dpMax:'Лимит снасти',
+  boatCap:'Мест в лодке',deckCount:'В лодке',
+  qbTitle:'📝 Банк вопросов',qbSingle:'➕ Добавить вопрос',qbBulk:'📋 Вставить списком (20 / 40 / 100+)',
+  qbQPh:'Текст вопроса…',qbOptPh:'Вариант',qbCatPh:'Тема',
+  qbAddOne:'Добавить',qbBulkBtn:'📥 Импортировать всё',qbSample:'Пример',
+  qbSelAll:'Выбрать все',qbDeselAll:'Снять выбор',qbSel20:'Первые 20',qbSel50:'Первые 50',qbDelSel:'Удалить',
+  qbStartFish:'🎣 Начать рыбалку с выбранными',qbFilter:'Поиск…',
+  srcBank:'Источник: Банк вопросов',srcBook:'Источник: Книга',switchSrc:'Сменить источник',
+  theme:'Тема'
+},
+tr:{
+  ti:'Balık Avı Macerası',st:'Balığa Başla',qb:'📝 Soru Bankası',lb:'Kütüphane',lg:'Dil',se:'Ayarlar',ab:'Hakkında',
+  f:'🎣 Balık Tut',m:'💰 Pazar',c:'🃏 Kartlar',sh:'🛒 Mağaza',
+  cs:'Oltayı At',co:'Altın',lv:'Seviye',xp:'XP',
+  pb:'Seç',pg:'sayfa',fr:'Başlangıç',to:'Bitiş',go:'Başla',
+  inv:'Geçersiz aralık',nq:'Henüz soru seçilmedi',
+  cm:'🎉 Tüm sorular bitti!',rv:'Tekrar modu',
+  ok:'Doğru! Balık tekneye çekiliyor…',no:'Yanlış! Balık kurtulup yüzdü',ex:'Cevap',
+  nw:'Yeni keşif!',bu:'Satın al',ow:'Sahip',eq:'Kuşan',eqd:'✔ Kuşanıldı',cf:'Onayla?',nm:'Yetersiz altın',
+  sl:'Sat',sa:'Sıradanları sat',tc:'Öğretmen',im:'İçe aktar',rs:'Sıfırla',sn:'Ses',pn:'PIN',
+  wt:'Balığın yemi kapması bekleniyor…',rlng:'🎣 Doğru! Balık tekneye alınıyor…',
+  ch:'Önce «Soru Bankası» veya «Kütüphane»den soru seçin',
+  emp:'Boş',qn:'soru',pt:'Bölüm',pk:'Sayfa seçin',cu:'Özel aralık',ad:'Ekle',
+  rod:'Olta',dp:'Derinlik',pw:'Kapasite',fd:'keşfedildi',lg2:'Kayıt',nf:'Satılacak balık yok',hd:'Tutulan balıklar satılana kadar teknede durur',
+  shRods:'🎣 Oltalar (9)',shHooks:'🪝 İğneler',shAcc:'⚙️ Aksesuarlar (5)',shBoats:'🚤 Tekneler (4)',
+  hook:'İğne',dur:'Dayanıklılık',repair:'Satın al',predWarn:'⚠️ Yırtıcı balık iğneye zarar verdi!',
+  hookBroke:'💥 Yırtıcı balık iğneyi kırdı! Yedek bronz iğne takıldı.',
+  tooHeavy:'⚖️ Bu balık oltanızın kapasitesinden ağır!',
+  dpSel:'Seçilen Derinlik',dpUnl:'Açılan Derinlik',dpMax:'Olta/Ağırlık Sınırı',
+  boatCap:'Tekne kapasitesi',deckCount:'Teknede',
+  qbTitle:'📝 Bağımsız Soru Bankası',qbSingle:'➕ Tek Soru Ekle',qbBulk:'📋 Toplu Yapıştır (20 / 40 / 100+)',
+  qbQPh:'Soruyu yazın…',qbOptPh:'Seçenek',qbCatPh:'Kategori',
+  qbAddOne:'Bankaya Ekle',qbBulkBtn:'📥 Tümünü İçe Aktar',qbSample:'Örnek Ekle',
+  qbSelAll:'Tümünü Seç',qbDeselAll:'Seçimi Kaldır',qbSel20:'İlk 20',qbSel50:'İlk 50',qbDelSel:'Sil',
+  qbStartFish:'🎣 Seçili Sorularla Hemen Avlan',qbFilter:'Soru ara…',
+  srcBank:'Kaynak: Soru Bankası',srcBook:'Kaynak: Kitap',switchSrc:'Kaynağı Değiştir',
+  theme:'Tema'
+}};
+
+const RAR={
+  ar:['عادية','غير شائعة','نادرة','ملحمية','أسطورية'],
+  en:['Common','Uncommon','Rare','Epic','Legendary'],
+  fr:['Commune','Peu commune','Rare','Épique','Légendaire'],
+  ru:['Обычная','Необычная','Редкая','Эпическая','Легендарная'],
+  tr:['Sıradan','Seyrek','Nadir','Destansı','Efsanevi']
+};
+const LN={ar:'العربية',en:'English',fr:'Français',ru:'Русский',tr:'Türkçe'},LI=['ar','en','fr','ru','tr'];
+const t=k=>T[S.lang][k]||T.ar[k];
+
+/* ---------- 26 Realistic Marine Species (Shallow to Abyssal) ---------- */
+const F=[
+  ['sardine',['السردين الفضي','Silver Sardine','Sardine argentée','Серебристая сардина','Gümüş Sardalya'],'Sardina pilchardus',0.25,20,0,65,0,0,7,'#3b6e9c','#e2f1f8'],
+  ['clown',['سمكة المهرج','Clownfish','Poisson-clown','Рыба-клоун','Palyaço Balığı'],'Amphiprion ocellaris',0.15,11,0,45,0,0,10,'#ff5e00','#ffb347'],
+  ['mack',['الماكريل المخطط','Atlantic Mackerel','Maquereau rayé','Атлантическая скумбрия','Çizgili Uskumru'],'Scomber scombrus',1.2,45,5,110,0,0,14,'#1e6b7b','#cce8f4'],
+  ['tilapia',['البلطي البحري','Sea Tilapia','Tilapia marin','Морская тиляпия','Deniz Tilapyası'],'Oreochromis spilurus',1.8,36,0,75,0,0,12,'#4b6b53','#cbd5c0'],
+  ['mullet',['البوري الذهبي','Golden Grey Mullet','Mulet doré','Сингиль','Altın Kefal'],'Chelon auratus',2.4,50,0,90,0,0,16,'#64748b','#f1f5f9'],
+  ['butterfly',['سمكة الفراشة الذهبية','Golden Butterflyfish','Poisson-papillon','Рыба-бабочка','Kelebek Balığı'],'Chaetodon semilarvatus',0.4,22,5,80,0,1,20,'#eab308','#fef08a'],
+  ['tang',['التانغ الأزرق الملكي','Regal Blue Tang','Chirurgien bleu','Голубой хирург','Mavi Cerrah Balığı'],'Paracanthurus hepatus',0.7,28,5,95,0,1,23,'#1d4ed8','#38bdf8'],
+  ['bream',['الدنيس الملكي','Gilt-head Bream','Dorade royale','Дорадо','Çipura'],'Sparus aurata',3.5,55,10,140,0,1,22,'#64748b','#e2e8f0'],
+  ['lion',['سمكة الأسد الحمراء','Red Lionfish','Rascasse volante','Крылатка-зебра','Aslan Balığı'],'Pterois volitans',1.4,38,15,165,1,1,26,'#9e2a2b','#f4a261'],
+  ['cod',['القد الأطلسي','Atlantic Cod','Morue franche','Атлантическая треска','Morina Balığı'],'Gadus morhua',15,110,30,220,0,1,36,'#6b7038','#d8d3b8'],
+  ['octopus',['الأخطبوط العملاق','Giant Pacific Octopus','Pieuvre géante','Гигантский осьминог','Dev Ahtapot'],'Enteroctopus dofleini',28,150,35,260,1,2,54,'#b91c1c','#fca5a5'],
+  ['grouper',['الهامور العملاق','Giant Grouper','Mérou géant','Гигантский групер','Orfoz'],'Epinephelus lanceolatus',45,160,50,290,1,2,58,'#784b2a','#c99b63'],
+  ['barracuda',['الباراكودا المفترسة','Great Barracuda','Grand barracuda','Большая барракуда','Büyük Baraküda'],'Sphyraena barracuda',35,175,40,320,2,2,65,'#475569','#cbd5e1'],
+  ['manta',['سمكة المانتا الشراعية','Giant Manta Ray','Raie manta géante','Гигантский морской дьявол','Dev Manta Vatozu'],'Mobula birostris',110,320,60,340,0,2,78,'#1e293b','#94a3b8'],
+  ['moray',['ثعبان الموراي الكهربائي','Electric Moray Eel','Murène électrique','Электрическая мурена','Elektrikli Müren'],'Gymnothorax javanicus',24,190,70,360,2,2,72,'#065f46','#34d399'],
+  ['tuna',['التونة الزرقاء العملاقة','Atlantic Bluefin Tuna','Thon rouge','Синеперый тунец','Mavi Yüzgeçli Orkinos'],'Thunnus thynnus',140,250,80,410,0,3,98,'#1d3557','#a8dadc'],
+  ['sword',['سمكة السيف','Swordfish','Espadon','Рыба-меч','Kılıç Balığı'],'Xiphias gladius',220,360,110,460,3,3,130,'#312e81','#94a3b8'],
+  ['marlin',['سمكة المارلين الأزرق','Atlantic Blue Marlin','Makaire bleu','Голубой марлин','Mavi Marlin'],'Makaira nigricans',260,390,130,480,3,3,145,'#1e40af','#60a5fa'],
+  ['hammerhead',['قرش رأس المطرقة','Great Hammerhead Shark','Requin-marteau','Гигантская молот-рыба','Çekiç Başlı Köpekbalığı'],'Sphyrna mokarran',290,410,140,490,3,3,155,'#52525b','#d4d4d8'],
+  ['angler',['سمكة الصياد المضيئة','Abyssal Anglerfish','Baudroie abyssale','Глубоководный удильщик','Fener Balığı'],'Melanocetus johnsonii',32,95,180,500,2,3,140,'#1e1b4b','#6366f1'],
+  ['mola',['سمكة الشمس العملاقة','Ocean Sunfish','Poisson-lune','Луна-рыба','Ay Balığı'],'Mola mola',380,280,160,500,0,4,175,'#64748b','#cbd5e1'],
+  ['oarfish',['سمكة المجداف الملكية','Giant Oarfish','Régalec géant','Сельдяной король','Kürek Balığı'],'Regalecus glesne',210,480,200,500,0,4,195,'#94a3b8','#f8fafc'],
+  ['squid',['الحبار العملاق','Colossal Squid','Calmar colossal','Гигантский кальмар','Dev Kalamar'],'Mesonychoteuthis hamiltoni',340,440,220,500,3,4,215,'#7f1d1d','#f87171'],
+  ['shark',['القرش الأبيض الكبير','Great White Shark','Grand requin blanc','Большая белая акула','Büyük Beyaz Köpekbalığı'],'Carcharodon carcharias',550,520,210,500,4,4,260,'#4b5563','#f8fafc'],
+  ['orca',['حوت الأوركا القاتل','Killer Whale (Orca)','Orque épaulard','Косатка','Katil Balina (Orka)'],'Orcinus orca',580,560,240,500,4,4,295,'#09090b','#ffffff'],
+  ['leviathan',['التنين البحري الأسطوري','Abyssal Leviathan','Léviathan des abysses','Морской Левиафан','Efsanevi Deniz Ejderhası'],'Leviathan profundis',600,600,280,500,4,4,350,'#0f766e','#fde047']
+];
+
+/* ---------- 9 Rods ---------- */
+const RODS=[
+  [['صنارة الخيزران','Bamboo Rod','Canne en bambou','Бамбуковая удочка','Bambu Olta'],1,20,0,'#c8a165','#78552b',['خفيفة للمياه الضحلة','Light for shallows','Légère','Лёгкая','Hafif']],
+  [['صنارة الألياف الزجاجية','Fiberglass Rod','Canne fibre de verre','Стеклопластиковая','Fiberglas Olta'],5,55,45,'#14b8a6','#0f766e',['+5% خبرة إضافية','+5% bonus XP','+5% XP','+5% опыта','+5% XP']],
+  [['صنارة الجرافيت','Graphite Rod','Canne graphite','Графитовая удочка','Grafit Olta'],18,105,115,'#475569','#1e293b',['+10% عملات إضافية','+10% bonus coins','+10% pièces','+10% монет','+10% altın']],
+  [['صنارة الكربون المقوّى','Carbon Pro Rod','Canne carbone pro','Карбоновая удочка','Karbon Olta'],50,165,250,'#1e3a8a','#ef4444',['تقلل ضرر المفترسات','Reduces predator wear','Moins d’usure','Меньше износ','Daha az aşınma']],
+  [['صنارة التيتانيوم','Titanium Rod','Canne titane','Титановая удочка','Titanyum Olta'],100,235,460,'#cbd5e1','#0284c7',['+15% خبرة إضافية','+15% bonus XP','+15% XP','+15% опыта','+15% XP']],
+  [['صنارة الأعماق الهيدروليكية','Hydraulic Deep Rod','Canne hydraulique','Гидравлическая','Hidrolik Olta'],180,315,790,'#f97316','#334155',['سحب سريع للأسماك','Fast reel-in','Remontée rapide','Быстрая тяга','Hızlı çekiş']],
+  [['صنارة الفولاذ الماسي','Diamond-Steel Rod','Canne acier-diamant','Алмазно-стальная','Elmas-Çelik Olta'],280,395,1260,'#38bdf8','#e0f2fe',['+20% عملات إضافية','+20% bonus coins','+20% pièces','+20% монет','+20% altın']],
+  [['صنارة التنين البحري','Sea Dragon Rod','Canne Dragon des mers','Морской дракон','Deniz Ejderhası'],420,455,1980,'#dc2626','#fbbf24',['درع قوي ضد المفترسات','Strong predator shield','Bouclier prédateurs','Защита крючка','Güçlü koruma']],
+  [['صنارة بوسيدون الأسطورية','Poseidon Legendary Rod','Canne de Poséidon','Трезубец Посейдона','Poseidon Efsanesi'],600,500,3000,'#f59e0b','#00f5d4',['+30% عملات وخبرة وهالة ذهبية','+30% coins & XP + Aura','+30% gains + Aura','+30% бонус + Аура','+30% bonus + Aura']]
+];
+
+/* ---------- 5 Hooks ---------- */
+const HOOKS=[
+  [['سن برونزي','Bronze Hook','Hameçon bronze','Бронзовый крючок','Bronz İğne'],2,10,'#b45309'],
+  [['سن حديدي','Iron Hook','Hameçon fer','Железный крючок','Demir İğne'],4,28,'#64748b'],
+  [['سن فولاذي','Steel Hook','Hameçon acier','Стальной крючок','Çelik İğne'],8,70,'#cbd5e1'],
+  [['سن تيتانيوم','Titanium Hook','Hameçon titane','Титановый крючок','Titanyum İğne'],15,160,'#38bdf8'],
+  [['سن ألماس','Diamond Hook','Hameçon diamant','Алмазный крючок','Elmas İğne'],30,360,'#a5f3fc']
+];
+
+/* ---------- 5 Accessories ---------- */
+const ACCS=[
+  ['reel',['ماكينة سحب سريعة','High-Speed Reel','Moulinet rapide','Скоростная катушка','Hızlı Makara'],95,'⚙️',['سحب فوري أسرع + 15% عملات','Faster reel + 15% coins','Remontée +15% pièces','Быстрее +15% монет','Hızlı +15% altın']],
+  ['kevlar',['خيط كيفلار (+25% وزن)','Kevlar Line (+25% Weight)','Fil Kevlar (+25% poids)','Кевларовая леска (+25%)','Kevlar Misina (+%25)'],145,'🧵',['يزيد حمولة أي صنارة +25%','Boosts rod weight +25%','+25% capacité poids','+25% к весу удочки','+%25 ağırlık kapasitesi']],
+  ['sinker',['ثقالة أعماق (+40 م)','Deep Sinker (+40m)','Plomb profond (+40m)','Глубоководный груз (+40м)','Derinlik Ağırlığı (+40m)'],125,'⚓',['تزيد أقصى عمق +40 متراً','Adds +40m max depth','+40m profondeur max','+40м к глубине','+40m derinlik']],
+  ['light',['كشاف فسفوري','Phosphorescent Light','Lampe phosphorescente','Фосфорный фонарь','Fosforlu Fener'],165,'🔦',['ينير الأعماق المظلمة ويجذب النوادر','Lights dark depths & rare fish','Éclaire les abysses','Освещает глубину','Karanlığı aydınlatır']],
+  ['sonar',['سونار كشف الأسماك','Fish-Finder Sonar','Sonar détecteur','Эхолот-сонар','Balık Bulucu Sonar'],225,'📡',['يعرض رادار الأسماك وأوزانها على الشاشة','Shows live fish radar & weights','Radar poissons en direct','Радар рыбы на экране','Canlı balık radarı']]
+];
+
+/* ---------- 4 Boats ---------- */
+const BOATS=[
+  [['قارب خشبي','Wooden Skiff','Barque en bois','Деревянная лодка','Ahşap Tekne'],0,5,'#8b5a2b','#5c3a1a','#d4a373'],
+  [['لنش رياضي','Sport Speedboat','Vedette rapide','Спортивный катер','Spor Tekne'],130,7,'#f8fafc','#0284c7','#38bdf8'],
+  [['يخت سافاري','Safari Yacht','Yacht Safari','Яхта Сафари','Safari Yatı'],360,9,'#ffffff','#1e3a8a','#f59e0b'],
+  [['سفينة الأعماق الذهبية','Golden Abyss Vessel','Navire d’Or des Abysses','Золотой корабль глубин','Altın Derinlik Gemisi'],820,12,'#d97706','#78350f','#fde047']
+];
+
+/* ---------- Built-in Book Questions ---------- */
+const Q0=[
+  [30,'mcq','ما الدليل على أن كلمة «أفلح» في قوله تعالى: «قد أفلح المؤمنون» فعل؟',['دخول «قد»','دخول الألف واللام','دخول حرف الجر','التنوين'],0],
+  [30,'mcq','ما الدليل على أن كلمة «المؤمنون» اسم؟',['دخول الألف واللام','دخول السين','دخول «قد»','تاء التأنيث الساكنة'],0],
+  [30,'mcq','لماذا كانت «يعلمون» في «سيعلمون» فعلًا؟',['لدخول السين','لدخول «قد»','لدخول الألف واللام','لدخول حرف الجر'],0],
+  [30,'mcq','كل كلمة دخلت عليها «سوف» فهي:',['فعل','اسم','حرف','فاعل'],0],
+  [30,'mcq','ما شرطا «تاء التأنيث الساكنة»؟',['أن تكون تاء تأنيث وأن تكون ساكنة','أن تكون مفتوحة وفي أول الكلمة','أن تكون في آخر الاسم فقط','أن تكون مضمومة'],0],
+  [30,'mcq','لماذا كانت «قالت» في «قالت الأعراب» فعلًا؟',['لأنها ختمت بتاء التأنيث الساكنة','لدخول «قد» عليها','لدخول السين عليها','لأنها بدأت بحرف القاف'],0],
+  [31,'tf','صح أم خطأ: «رحمة» فعل لأن فيها تاء تأنيث.',['صح','خطأ'],1],
+  [31,'mcq','كم عدد علامات الفعل المذكورة في الشرح؟',['أربع','ثلاث','خمس','اثنتان'],0],
+  [31,'mcq','«السين» و«سوف» تختصان بـ:',['المضارع','الماضي','الأمر','الاسم'],0],
+  [31,'mcq','«قد» تدخل على:',['الماضي والمضارع','الاسم فقط','الحرف فقط','الأمر فقط'],0],
+  [31,'tf','صح أم خطأ: كلمة «بيت» آخرها تاء تأنيث، فهي فعل.',['صح','خطأ'],1],
+  [31,'mcq','أي العلامات تختص بالفعل الماضي؟',['تاء التأنيث الساكنة','السين','سوف','الألف واللام'],0]
+].map((r,i)=>({id:'ajr-'+r[0]+'-'+i,b:'ajr',p:r[0],t:r[1],q:r[2],o:r[3],a:r[4]}));
+
+/* ---------- 120 Built-in Questions Across 5 Rich Domains ---------- */
+const INIT_BANK=(()=>{
+  const raw=[
+    // 1. النحو والصرف (25)
+    ['النحو والصرف','ما علامة رفع جمع المذكر السالم؟',['الواو','الألف','الضمة','ثبوت النون'],0],
+    ['النحو والصرف','ما علامة نصب جمع المؤنث السالم؟',['الكسرة','الفتحة','الياء','الألف'],0],
+    ['النحو والصرف','الفعل المضارع المسبوق بأداة الجزم «لم» يكون:',['مجزوماً','منصوباً','مرفوعاً','مبنياً'],0],
+    ['النحو والصرف','أي الكلمات التالية من الأسماء الخمسة؟',['أخوك','أخوان','إخوة','أختك'],0],
+    ['النحو والصرف','ما علامة رفع المثنى؟',['الألف','الواو','الضمة','الياء'],0],
+    ['النحو والصرف','«إنَّ» وأخواتها تدخل على الجملة الاسمية فـ:',['تنصب المبتدأ وترفع الخبر','ترفع المبتدأ وتنصب الخبر','ترفع الاثنين معاً','تنصب الاثنين معاً'],0],
+    ['النحو والصرف','«كان» وأخواتها تدخل على الجملة الاسمية فـ:',['ترفع المبتدأ وتنصب الخبر','تنصب المبتدأ وترفع الخبر','تجزم المبتدأ','تجر الخبر'],0],
+    ['النحو والصرف','الكلمة التي تدل على من فعل الفعل تُسمى:',['فاعلاً','مفعولاً به','حالاً','تمييزاً'],0],
+    ['النحو والصرف','ما إعراب كلمة «مسرعاً» في جملة: جاء الطالب مسرعاً؟',['حال منصوبة','نعت مرفوع','مفعول به','مضاف إليه'],0],
+    ['النحو والصرف','أي الحروف التالية من حروف الجر؟',['على','لن','لم','سوف'],0],
+    ['النحو والصرف','الممنوع من الصرف يُجر بالفتحة نيابة عن الكسرة إذا كان:',['مجرداً من «أل» والإضافة','معرَّفاً بـ «أل»','مضافاً لما بعده','مثنى'],0],
+    ['النحو والصرف','ما وزن كلمة «مكتوب» في الصرف؟',['مفعول','فاعل','فعيل','مِفْعَل'],0],
+    ['النحو والصرف','الأفعال الخمسة تُرفع بـ:',['ثبوت النون','الضمة الظاهرة','الواو','الألف'],0],
+    ['النحو والصرف','ما نوع «لا» في قوله تعالى: «لا تَحْزَنْ إِنَّ اللَّهَ مَعَنَا»؟',['ناهية جازمة','نافية غير عاملة','عاطفة','ناصبة'],0],
+    ['النحو والصرف','نائب الفاعل يكون دائماً:',['مرفوعاً','منصوباً','مجروراً','مجزوماً'],0],
+    ['النحو والصرف','الاسم الواقع بعد «غير» و«سوى» يُعرب دائماً:',['مضافاً إليه مجروراً','مستثنى منصوباً','بدلاً مرفوعاً','نعتاً'],0],
+    ['النحو والصرف','ما علامة جزم الفعل المضارع المعتل الآخر؟',['حذف حرف العلة','السكون','حذف النون','الكسرة'],0],
+    ['النحو والصرف','كلمة «استغفار» مصدر لفعل:',['سداسي','خماسي','رباعي','ثلاثي'],0],
+    ['النحو والصرف','في جملة «قرأتُ الكتابَ كلَّه»، كلمة «كلَّه» تُعرب:',['توكيداً معنوياً','بدلاً','عطف بيان','مفعولاً مطلقاً'],0],
+    ['النحو والصرف','ما نوع المنادى في قولك: «يا طالبَ العلمِ اجتهد»؟',['مضاف منصوب','نكرة مقصودة','علم مفرد','شبيه بالمضاف'],0],
+    ['النحو والصرف','الفعل الماضي يُبنى على الضم إذا اتصلت به:',['واو الجماعة','تاء الفاعل','نون النسوة','ألف الاثنين'],0],
+    ['النحو والصرف','أي الكلمات التالية اسم تفضيل؟',['أكبر','كبير','مكبِّر','تكبير'],0],
+    ['النحو والصرف','المفعول لأجله يُذكر لبيان:',['سبب وقوع الفعل','زمان الفعل','مكان الفعل','هيئة الفاعل'],0],
+    ['النحو والصرف','حرف العطف الذي يفيد الترتيب والتعقيب بلا مهلة هو:',['الفاء','ثم','أو','لكن'],0],
+    ['النحو والصرف','كلمة «صحراء» همزتها:',['زائدة للتأنيث','أصلية','منقلبة عن واو','منقلبة عن ياء'],0],
+
+    // 2. القرآن وعلومه (25)
+    ['القرآن وعلومه','ما السورة التي تعدل ثلث القرآن الكريم؟',['سورة الإخلاص','سورة الفاتحة','سورة الكوثر','سورة الناس'],0],
+    ['القرآن وعلومه','ما السورة التي تسمى «عروس القرآن»؟',['سورة الرحمن','سورة يس','سورة الملك','سورة الواقعة'],0],
+    ['القرآن وعلومه','كم عدد سور القرآن الكريم؟',['114 سورة','110 سور','120 سورة','99 سورة'],0],
+    ['القرآن وعلومه','ما أطول سورة في القرآن الكريم؟',['سورة البقرة','سورة آل عمران','سورة النساء','سورة الأعراف'],0],
+    ['القرآن وعلومه','ما السورة التي خُتمت باسم نبيَّين كريمَين؟',['سورة الأعلى','سورة الفجر','سورة التين','سورة القلم'],0],
+    ['القرآن وعلومه','ما السورة التي بدأت بالتسبيح وخُتمت بالتسبيح؟',['سورة الحشر','سورة الصف','سورة الجمعة','سورة التغابن'],0],
+    ['القرآن وعلومه','كم عدد أجزاء القرآن الكريم؟',['30 جزءاً','20 جزءاً','40 جزءاً','60 جزءاً'],0],
+    ['القرآن وعلومه','ما السورة التي ذُكر فيها لفظ الجلالة «الله» في كل آية من آياتها؟',['سورة المجادلة','سورة الحديد','سورة الطلاق','سورة التحريم'],0],
+    ['القرآن وعلومه','ما السورة التي لم تبدأ بالبسملة؟',['سورة التوبة','سورة الأنفال','سورة الرعد','سورة النمل'],0],
+    ['القرآن وعلومه','في أي سورة وردت البسملة مرتين؟',['سورة النمل','سورة التوبة','سورة البقرة','سورة الكهف'],0],
+    ['القرآن وعلومه','ما أعظم آية في كتاب الله تعالى؟',['آية الكرسي','آية الدين','آخر آية في البقرة','أول آية في الفاتحة'],0],
+    ['القرآن وعلومه','كم عدد مخارج الحروف الرئيسية عند الجمهور؟',['خمسة مخارج','ثلاثة مخارج','سبعة مخارج','أربعة مخارج'],0],
+    ['القرآن وعلومه','حروف الإظهار الحلقي عددها:',['ستة أحرف','أربعة أحرف','خمسة أحرف','سبعة أحرف'],0],
+    ['القرآن وعلومه','حروف القلقلة مجموعة في عبارة:',['قطب جد','يرملون','خص ضغط قظ','فحثه شخص سكت'],0],
+    ['القرآن وعلومه','كم عدد أحزاب القرآن الكريم؟',['60 حزباً','30 حزباً','40 حزباً','120 حزباً'],0],
+    ['القرآن وعلومه','ما السورة المنجية من عذاب القبر؟',['سورة الملك','سورة السجدة','سورة الدخان','سورة القمر'],0],
+    ['القرآن وعلومه','من الصحابي الوحيد الذي ذُكر اسمه صريحاً في القرآن الكريم؟',['زيد بن حارثة','أبو بكر الصديق','عمر بن الخطاب','علي بن أبي طالب'],0],
+    ['القرآن وعلومه','ما أقصر سورة في القرآن الكريم؟',['سورة الكوثر','سورة العصر','سورة النصر','سورة قريش'],0],
+    ['القرآن وعلومه','كم عدد السجدات في القرآن الكريم عند الجمهور؟',['15 سجدة','10 سجدات','12 سجدة','20 سجدة'],0],
+    ['القرآن وعلومه','ما السورة التي تسمى «سنام القرآن»؟',['سورة البقرة','سورة الفاتحة','سورة الأنعام','سورة الكهف'],0],
+    ['القرآن وعلومه','حروف الإدغام بنوعيه مجموعة في كلمة:',['يرملون','ينمو','أبجد','هوز'],0],
+    ['القرآن وعلومه','ما أول سورة نزلت كاملة على النبي ﷺ؟',['سورة الفاتحة','سورة العلق','سورة المدثر','سورة المزمل'],0],
+    ['القرآن وعلومه','في أي ليلة أُنزل القرآن الكريم؟',['ليلة القدر','ليلة الإسراء','ليلة النصف من شعبان','ليلة الجمعة'],0],
+    ['القرآن وعلومه','كم سنة استغرق نزول القرآن الكريم؟',['23 سنة','10 سنوات','13 سنة','30 سنة'],0],
+    ['القرآن وعلومه','ما اسم السورة التي سُميت باسم ركن من أركان الإسلام؟',['سورة الحج','سورة الزكاة','سورة الصيام','سورة الصلاة'],0],
+
+    // 3. العلوم والبحار (25)
+    ['العلوم والبحار','ما أكبر كائن حي يعيش في المحيطات وعلى وجه الأرض؟',['الحوت الأزرق','القرش الأبيض','سمكة الشمس','الحبار العملاق'],0],
+    ['العلوم والبحار','بماذا تتنفس الأسماك تحت الماء؟',['بالخياشيم','بالرئتين','بالجلد فقط','بالزعانف'],0],
+    ['العلوم والبحار','ما الغاز الذي تمتصه النباتات للقيام بعملية البناء الضوئي؟',['ثاني أكسيد الكربون','الأكسجين','النيتروجين','الهيدروجين'],0],
+    ['العلوم والبحار','ما أسرع سمكة في المحيطات؟',['سمكة الزعنفة الشراعية','التونة الزرقاء','الباراكودا','الدلفين'],0],
+    ['العلوم والبحار','كم عدد قلوب الأخطبوط؟',['ثلاثة قلوب','قلب واحد','قلبان','أربعة قلوب'],0],
+    ['العلوم والبحار','ما أعمق نقطة معروفة في محيطات العالم؟',['خندق ماريانا','خندق بورتوريكو','بحر البلطيق','الخليج العربي'],0],
+    ['العلوم والبحار','ما المعدن السائل في درجة حرارة الغرفة؟',['الزئبق','الحديد','الألومنيوم','النحاس'],0],
+    ['العلوم والبحار','كم عدد كواكب المجموعة الشمسية؟',['8 كواكب','9 كواكب','7 كواكب','10 كواكب'],0],
+    ['العلوم والبحار','ما الوحدة الأساسية لتركيب جسم الكائن الحي؟',['الخلية','الذرة','النسيج','العضو'],0],
+    ['العلوم والبحار','أي الكواكب يُسمى «الكوكب الأحمر»؟',['المريخ','الزهرة','المشتري','عطارد'],0],
+    ['العلوم والبحار','ما أكبر عضو في جسم الإنسان؟',['الجلد','الكبد','القلب','الدماغ'],0],
+    ['العلوم والبحار','ما الفيتامين الذي يصنعه الجسم عند التعرض لأشعة الشمس؟',['فيتامين D','فيتامين C','فيتامين A','فيتامين B12'],0],
+    ['العلوم والبحار','ما الظاهرة المسؤولة عن ارتفاع وانخفاض منسوب مياه البحر يومياً؟',['المد والجزر','التبخر','التكثف','التسونامي'],0],
+    ['العلوم والبحار','أي نوع من الأسماك يمتلك هيكلاً غضروفياً بدلاً من العظام؟',['أسماك القرش','السردين','التونة','البلطي'],0],
+    ['العلوم والبحار','ما الرمز الكيميائي للماء؟',['H2O','CO2','O2','NaCl'],0],
+    ['العلوم والبحار','كم تبلغ درجة غليان الماء النقي عند مستوى سطح البحر؟',['100 درجة مئوية','50 درجة مئوية','80 درجة مئوية','120 درجة مئوية'],0],
+    ['العلوم والبحار','ما الكائن البحري الذي يمتلك خاصية الإضاءة الحيوية في الأعماق السحيقة؟',['سمكة الصياد (أبو الشص)','السردين','البوري','الدنيس'],0],
+    ['العلوم والبحار','أي جزء في العين يتحكم في كمية الضوء الداخلة إليها؟',['القزحية والبؤبؤ','القرنية','الشبكية','العصب البصري'],0],
+    ['العلوم والبحار','ما أقرب نجم إلى كوكب الأرض؟',['الشمس','سهيل','الشعرى اليمانية','نجم القطب'],0],
+    ['العلوم والبحار','ما العملية التي يتحول فيها الماء من الحالة السائلة إلى الغازية؟',['التبخر','التكثف','التجمد','الانصهار'],0],
+    ['العلوم والبحار','كم عدد أسنان الإنسان البالغ في الحالة الطبيعية؟',['32 سناً','28 سناً','20 سناً','36 سناً'],0],
+    ['العلوم والبحار','ما الغاز الأكثر وفرة في الغلاف الجوي للأرض؟',['النيتروجين (78%)','الأكسجين (21%)','ثاني أكسيد الكربون','الهيليوم'],0],
+    ['العلوم والبحار','أي الحيوانات البحرية يُعد من الثدييات وليس من الأسماك؟',['حوت الأوركا','القرش الأبيض','سمكة السيف','الهامور'],0],
+    ['العلوم والبحار','ما الجهاز المسؤول عن ضخ الدم إلى جميع أنحاء الجسم؟',['الجهاز الدوري (القلب)','الجهاز التنفسي','الجهاز الهضمي','الجهاز العصبي'],0],
+    ['العلوم والبحار','ما سرعة الضوء في الفراغ تقريباً؟',['300 ألف كم/ثانية','30 ألف كم/ثانية','3 آلاف كم/ثانية','3 ملايين كم/ثانية'],0],
+
+    // 4. التاريخ والجغرافيا (25)
+    ['التاريخ والجغرافيا','ما أطول نهر في العالم؟',['نهر النيل','نهر الأمازون','نهر المسيسيبي','نهر الفرات'],0],
+    ['التاريخ والجغرافيا','ما أكبر قارات العالم من حيث المساحة؟',['قارة آسيا','قارة أفريقيا','قارة أوروبا','قارة أمريكا الشمالية'],0],
+    ['التاريخ والجغرافيا','ما أكبر محيط في العالم؟',['المحيط الهادئ','المحيط الأطلسي','المحيط الهندي','المحيط المتجمد الشمالي'],0],
+    ['التاريخ والجغرافيا','في أي عام هجري وقعت غزوة بدر الكبرى؟',['السنة الثانية للهجرة','السنة الأولى للهجرة','السنة الخامسة للهجرة','السنة الثامنة للهجرة'],0],
+    ['التاريخ والجغرافيا','من القائد المسلم الذي فتح الأندلس؟',['طارق بن زياد','خالد بن الوليد','عمرو بن العاص','صلاح الدين الأيوبي'],0],
+    ['التاريخ والجغرافيا','ما المضيق الذي يربط بين البحر الأحمر وخليج عدن؟',['مضيق باب المندب','مضيق هرمز','مضيق جبل طارق','قناة السويس'],0],
+    ['التاريخ والجغرافيا','ما أعلى قمة جبلية في العالم؟',['قمة إيفرست','قمة كليمنجارو','جبل طارق','جبل موسى'],0],
+    ['التاريخ والجغرافيا','من القائد الذي حرر بيت المقدس في معركة حطين؟',['صلاح الدين الأيوبي','سيف الدين قطز','الظاهر بيبرس','نور الدين زنكي'],0],
+    ['التاريخ والجغرافيا','ما أكبر صحراء حارة في العالم؟',['الصحراء الكبرى','صحراء الربع الخالي','صحراء جوبي','صحراء أتاكاما'],0],
+    ['التاريخ والجغرافيا','أي قناة مائية تربط بين البحر الأبيض المتوسط والبحر الأحمر؟',['قناة السويس','قناة بنما','مضيق البوسفور','مضيق ملقا'],0],
+    ['التاريخ والجغرافيا','من أول خليفة للمسلمين بعد وفاة النبي ﷺ؟',['أبو بكر الصديق','عمر بن الخطاب','عثمان بن عفان','علي بن أبي طالب'],0],
+    ['التاريخ والجغرافيا','ما عاصمة الدولة العباسية في عصرها الذهبي؟',['بغداد','دمشق','القاهرة','قرطبة'],0],
+    ['التاريخ والجغرافيا','كم عدد دول الوطن العربي؟',['22 دولة','18 دولة','25 دولة','15 دولة'],0],
+    ['التاريخ والجغرافيا','ما أكبر جزيرة في العالم؟',['جرينلاند','مدغشقر','سومطرة','بريطانيا'],0],
+    ['التاريخ والجغرافيا','في أي معركة انتصر المسلمون بقيادة قطز وبيبرس على المغول؟',['عين جالوت','اليرموك','القادسية','ملاذكرد'],0],
+    ['التاريخ والجغرافيا','ما اسم الخط الوهمي الذي يقسم الأرض إلى نصفين شمالي وجنوبي؟',['خط الاستواء','خط جرينتش','مدار السرطان','مدار الجدي'],0],
+    ['التاريخ والجغرافيا','من مؤسس علم الاجتماع وصاحب «المقدمة» الشهيرة؟',['ابن خلدون','ابن بطوطة','الإدريسي','الفارابي'],0],
+    ['التاريخ والجغرافيا','ما البحر الذي يفصل بين قارتي أوروبا وأفريقيا؟',['البحر الأبيض المتوسط','البحر الأحمر','البحر الأسود','بحر العرب'],0],
+    ['التاريخ والجغرافيا','من الرحالة المسلم الذي طاف العالم وكتب «تحفة النظار»؟',['ابن بطوطة','ابن جبير','المسعودي','ابن ماجد'],0],
+    ['التاريخ والجغرافيا','في أي عام هجري تم فتح مكة المكرمة؟',['السنة الثامنة للهجرة','السنة السادسة للهجرة','السنة العاشرة للهجرة','السنة الرابعة للهجرة'],0],
+    ['التاريخ والجغرافيا','ما الدولة العربية التي تقع في أقصى غرب الوطن العربي؟',['المغرب','تونس','الجزائر','ليبيا'],0],
+    ['التاريخ والجغرافيا','ما المضيق الذي يفصل بين آسيا وأمريكا الشمالية؟',['مضيق بيرنغ','مضيق هرمز','مضيق جبل طارق','مضيق دوفر'],0],
+    ['التاريخ والجغرافيا','من الخليفة الذي أمر بجمع القرآن الكريم في مصحف واحد؟',['أبو بكر الصديق','معاوية بن أبي سفيان','هارون الرشيد','عمر بن عبد العزيز'],0],
+    ['التاريخ والجغرافيا','ما اسم البحيرة المالحة الأكثر انخفاضاً على سطح اليابسة؟',['البحر الميت','بحيرة فيكتوريا','بحر قزوين','بحيرة طبريا'],0],
+    ['التاريخ والجغرافيا','من العالم المسلم الملقب بأمير البحار وصاحب «الفوائد في أصول علم البحر»؟',['أحمد بن ماجد','الخوارزمي','البيروني','ابن الهيثم'],0],
+
+    // 5. الرياضيات والذكاء (20)
+    ['الرياضيات والذكاء','ما ناتج: 12 × 12 ؟',['144','124','132','154'],0],
+    ['الرياضيات والذكاء','كم يساوي مجموع قياسات زوايا المثلث الداخلية؟',['180 درجة','360 درجة','90 درجة','270 درجة'],0],
+    ['الرياضيات والذكاء','ما العدد الأولي الوحيد الزوجي؟',['2','4','6','0'],0],
+    ['الرياضيات والذكاء','إذا كان ثمن 5 أسماك 35 عملة، فكم ثمن السمكة الواحدة؟',['7 عملات','5 عملات','6 عملات','8 عملات'],0],
+    ['الرياضيات والذكاء','ما الجذر التربيعي للعدد 81؟',['9','8','7','11'],0],
+    ['الرياضيات والذكاء','كم متراً في 3.5 كيلومتر؟',['3500 متر','350 متراً','35000 متر','35 متراً'],0],
+    ['الرياضيات والذكاء','ما مساحة مستطيل طوله 9 سم وعرضه 4 سم؟',['36 سم²','26 سم²','13 سم²','18 سم²'],0],
+    ['الرياضيات والذكاء','أكمل المتتالية: 2 ، 6 ، 18 ، 54 ، …',['162','108','72','120'],0],
+    ['الرياضيات والذكاء','ما قيمة 25% من العدد 200؟',['50','25','75','100'],0],
+    ['الرياضيات والذكاء','كم ضلعاً للشكل السداسي المنتظم؟',['6 أضلاع','5 أضلاع','7 أضلاع','8 أضلاع'],0],
+    ['الرياضيات والذكاء','إذا كانت الساعة الآن 3:45، فكم تكون بعد 40 دقيقة؟',['4:25','4:15','4:35','5:05'],0],
+    ['الرياضيات والذكاء','ما ناتج: 100 − 37 ؟',['63','73','67','53'],0],
+    ['الرياضيات والذكاء','أي الكسور التالية يساوي 0.5 ؟',['1/2','1/4','2/3','3/5'],0],
+    ['الرياضيات والذكاء','محيط مربع طول ضلعه 7 سم يساوي:',['28 سم','49 سم','14 سم','21 سم'],0],
+    ['الرياضيات والذكاء','ما العدد الذي إذا ضُرب في نفسه كان الناتج 64؟',['8','6','7','9'],0],
+    ['الرياضيات والذكاء','كم ثانية في 3 دقائق ونصف؟',['210 ثوانٍ','180 ثانية','200 ثانية','240 ثانية'],0],
+    ['الرياضيات والذكاء','إذا كان 3س = 21، فما قيمة س؟',['7','6','8','9'],0],
+    ['الرياضيات والذكاء','ما أكبر عدد مكون من 3 أرقام مختلفة؟',['987','999','989','897'],0],
+    ['الرياضيات والذكاء','مجموع قياسات زوايا الشكل الرباعي يساوي:',['360 درجة','180 درجة','540 درجة','90 درجة'],0],
+    ['الرياضيات والذكاء','أكمل المتتالية: 1 ، 1 ، 2 ، 3 ، 5 ، 8 ، …',['13','11','12','15'],0]
+  ];
+  return raw.map((r,i)=>({id:'init_'+(i+1),cat:r[0],q:r[1],o:r[2],a:r[3]}));
+})();
+
+/* ---------- State ---------- */
+const def=()=>({
+  lang:'ar',theme:'',coins:60,xp:0,
+  rod:0,rods:[0],
+  hook:0,hookHp:2,
+  accs:[],accOn:[],
+  boat:0,boats:[0],
+  deck:[],
+  unlockedDepth:40,targetDepth:20,
+  fish:{},
+  mode:'bank',
+  book:'ajr',rs:[[30,31]],sub:0,
+  bank:INIT_BANK.map(x=>({...x,o:[...x.o]})),
+  bankSel:INIT_BANK.map(x=>x.id),
+  bankDone:[],
+  cats:[...new Set(INIT_BANK.map(x=>x.cat))],
+  activeCat:'',
+  seen:[],wrong:[],ans:0,right:0,log:[],vol:.5,qs:[],books:[],review:false
+});
+let S;
+try{
+  const raw=JSON.parse(localStorage.getItem('fa2_elkashef')||'null');
+  S=Object.assign(def(),raw||{});
+  if(!Array.isArray(S.rods)||!S.rods.length)S.rods=[0];
+  if(!Array.isArray(S.boats)||!S.boats.length)S.boats=[0];
+  if(!Array.isArray(S.accs))S.accs=[];
+  if(!Array.isArray(S.accOn))S.accOn=[];
+  if(!Array.isArray(S.deck))S.deck=[];
+  if(!Array.isArray(S.bank)||!S.bank.length){
+    S.bank=INIT_BANK.map(x=>({...x,o:[...x.o]}));
+    S.bankSel=S.bank.map(x=>x.id);
+    S.mode='bank';
+  }
+  if(!Array.isArray(S.bankSel))S.bankSel=S.bank.map(x=>x.id);
+  if(!Array.isArray(S.bankDone))S.bankDone=[];
+  if(!Array.isArray(S.cats))S.cats=[];
+  S.bank.forEach(q=>{if(q.cat&&!S.cats.includes(q.cat))S.cats.push(q.cat);});
+  if(typeof S.unlockedDepth!=='number'||S.unlockedDepth<40)S.unlockedDepth=Math.max(40,S.unlockedDepth||40);
+  if(typeof S.targetDepth!=='number')S.targetDepth=20;
+}catch(e){S=def()}
+const save=()=>{try{localStorage.setItem('fa2_elkashef',JSON.stringify(S))}catch(e){}};
+
+const idxL=()=>LI.indexOf(S.lang);
+const fname=f=>f[1][idxL()]||f[1][0];
+const rname=i=>RODS[i][0][idxL()]||RODS[i][0][0];
+const hname=i=>HOOKS[i][0][idxL()]||HOOKS[i][0][0];
+const aname=a=>a[1][idxL()]||a[1][0];
+const bname=i=>BOATS[i][0][idxL()]||BOATS[i][0][0];
+const hasAcc=id=>S.accOn.includes(id);
+
+function effMaxWeight(){
+  const base=RODS[S.rod][1];
+  return hasAcc('kevlar')?Math.round(base*1.25*10)/10:base;
+}
+function effGearDepth(){
+  return Math.min(500,RODS[S.rod][2]+(hasAcc('sinker')?40:0));
+}
+function effAllowedDepth(){
+  return Math.max(5,Math.min(500,Math.min(S.unlockedDepth,effGearDepth())));
+}
+function depthZoneInfo(d){
+  if(d<60)return{name:S.lang==='ar'?'المنطقة الضحلة (الشعاب)':'Shallow Reef',widthPct:100,rarePct:18};
+  if(d<160)return{name:S.lang==='ar'?'المياه المفتوحة':'Open Pelagic',widthPct:135,rarePct:38};
+  if(d<300)return{name:S.lang==='ar'?'منطقة الشفق البحري':'Twilight Zone',widthPct:180,rarePct:64};
+  return{name:S.lang==='ar'?'الأعماق السحيقة الواسعة':'Abyssal Trench',widthPct:235,rarePct:88};
+}
+
+const allB=()=>[{id:'ajr',n:'شرح الآجرومية',a:'ابن عثيمين',p:576}].concat(S.books);
+const allQ=()=>Q0.concat(S.qs);
+const inR=q=>S.rs.some(r=>q.p>=r[0]&&q.p<=r[1]);
+function activePool(){
+  if(S.mode==='bank')return S.bank.filter(q=>S.bankSel.includes(q.id));
+  return allQ().filter(q=>q.b===S.book&&inR(q));
+}
+const lvl=()=>1+Math.floor(S.xp/60);
+
+/* ---------- Audio ---------- */
+let AC;
+function bp(f,d=.1,ty='sine'){
+  if(!S.vol)return;
+  try{
+    AC=AC||new(window.AudioContext||window.webkitAudioContext)();
+    const o=AC.createOscillator(),g=AC.createGain();
+    o.type=ty;o.frequency.value=f;
+    g.gain.setValueAtTime(S.vol*.18,AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+d);
+    o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d);
+  }catch(e){}
+}
+function sfx(type){
+  if(type==='cast'){bp(320,.12,'sine');setTimeout(()=>bp(220,.16,'triangle'),70)}
+  else if(type==='bite'){bp(520,.1,'triangle');setTimeout(()=>bp(680,.14,'triangle'),90)}
+  else if(type==='win'){bp(523,.1);setTimeout(()=>bp(659,.1),90);setTimeout(()=>bp(784,.22),180)}
+  else if(type==='bad'){bp(210,.18,'sawtooth');setTimeout(()=>bp(155,.25,'sawtooth'),130)}
+  else if(type==='snap'){bp(140,.12,'square');setTimeout(()=>bp(95,.28,'sawtooth'),80)}
+  else if(type==='coin'){bp(880,.08);setTimeout(()=>bp(1175,.15),70)}
+}
+
+/* ---------- Modal ---------- */
+const open=()=>$('#modal').hidden=false,close=()=>$('#modal').hidden=true;
+function msg(txt,cb,extra){
+  $('#mbox').innerHTML='<div style="line-height:1.6">'+txt+'</div><div style="margin-top:12px"><button id="mk">OK</button>'+(extra?'<button id="mx" class="sec">'+extra[0]+'</button>':'')+'</div>';
+  open();
+  $('#mk').onclick=()=>{close();cb&&cb()};
+  if(extra)$('#mx').onclick=()=>{close();extra[1]()};
+}
+
+/* ---------- Navigation & HUD ---------- */
+let cur='fish',shopSub='rods',qbSearch='',lastQId='';
+function applyTheme(){
+  if(S.theme==='dark'||S.theme==='light')document.documentElement.setAttribute('data-theme',S.theme);
+  else document.documentElement.removeAttribute('data-theme');
+}
+function toggleTheme(){
+  const isDark=S.theme==='dark'||(!S.theme&&window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches);
+  S.theme=isDark?'light':'dark';
+  applyTheme();save();drawTop();
+}
+function lang(l){S.lang=l;save();apply()}
+function apply(){
+  applyTheme();
+  document.documentElement.lang=S.lang;
+  document.documentElement.dir=S.lang==='ar'?'rtl':'ltr';
+  $('#ti').textContent=t('ti');
+  $('#dv').innerHTML=(S.lang==='ar'?'إعداد وتطوير د. محسن الكاشف':'')+'<small>Dr. Mohsen Elkashef</small>';
+  $('#s-go').textContent='🎣 '+t('st');
+  $('#s-qb').textContent=t('qb');
+  $('#s-lib').textContent='📚 '+t('lb');
+  $('#s-ab').textContent=t('ab');
+  $('#s-lg').innerHTML=LI.map(l=>'<button class="'+(l===S.lang?'':'sec')+'" data-l="'+l+'">'+LN[l]+'</button>').join('');
+  document.querySelectorAll('#s-lg button').forEach(b=>b.onclick=()=>lang(b.dataset.l));
+  $('#bc').textContent='🎣 '+t('cs');
+  $('#bswitch').textContent=t('switchSrc');
+  drawTop();drawTabs();syncDepthUI();
+  if(!$('#app').hidden)show(cur);
+}
+
+function drawTop(){
+  const nf=Object.keys(S.fish).length;
+  const isDark=S.theme==='dark'||(!S.theme&&window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches);
+  $('#top').innerHTML=
+    '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">'+
+      '<button id="btn-home" class="sec icon-btn" title="Home">🏠</button>'+
+      '<span class="hud-pill">🧑‍✈️ '+t('lv')+' '+lvl()+'</span>'+
+      '<span class="hud-pill">⭐ '+S.xp+' '+t('xp')+'</span>'+
+      '<span class="hud-pill">🪙 '+S.coins+'</span>'+
+      '<span class="hud-pill">🐠 '+nf+'/'+F.length+'</span>'+
+    '</div>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">'+
+      '<span class="hud-pill" style="font-size:.82rem">'+(S.mode==='bank'?t('srcBank')+' ('+S.bankSel.length+')':t('srcBook'))+'</span>'+
+      '<button id="btn-theme" class="sec icon-btn" title="'+t('theme')+'">'+(isDark?'☀️':'🌙')+'</button>'+
+    '</div>';
+  const bh=$('#btn-home');if(bh)bh.onclick=()=>{$('#app').hidden=true;$('#start').hidden=false;};
+  const bt=$('#btn-theme');if(bt)bt.onclick=toggleTheme;
+}
+
+const TABS=[['fish','f'],['qb','qb'],['lib','lb'],['shop','sh'],['mkt','m'],['cards','c'],['set','se']];
+function drawTabs(){
+  $('#tabs').innerHTML=TABS.map(x=>'<button class="'+(x[0]===cur?'on':'')+'" data-t="'+x[0]+'">'+t(x[1])+'</button>').join('');
+  document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>show(b.dataset.t));
+}
+
+function syncDepthUI(){
+  const maxD=effAllowedDepth();
+  if(S.targetDepth>maxD)S.targetDepth=maxD;
+  if(S.targetDepth<5)S.targetDepth=5;
+  const sl=$('#dp-sl');
+  if(sl){sl.min=5;sl.max=maxD;sl.value=S.targetDepth;}
+  if($('#dp-lbl'))$('#dp-lbl').textContent='🌊 '+t('dpSel');
+  if($('#dp-val'))$('#dp-val').textContent=S.targetDepth+' m';
+  if($('#dp-unl'))$('#dp-unl').textContent='🔓 '+t('dpUnl')+': '+S.unlockedDepth+' m (+25m/✔)';
+  if($('#dp-cap'))$('#dp-cap').textContent='🎣 '+t('dpMax')+': '+effGearDepth()+' m';
+  const z=depthZoneInfo(S.targetDepth);
+  if($('#oc-zone'))$('#oc-zone').textContent='🧭 '+z.name;
+  if($('#oc-width'))$('#oc-width').textContent=(S.lang==='ar'?'↔️ اتساع البحر: ':'↔️ Sea Span: ')+z.widthPct+'%';
+  if($('#oc-rare'))$('#oc-rare').textContent=(S.lang==='ar'?'✨ الأسماك النادرة: ':'✨ Rare Fish: ')+z.rarePct+'%';
+  if($('#gear-strip')){
+    const hkMax=HOOKS[S.hook][1];
+    $('#gear-strip').innerHTML=
+      '<span class="gear-badge">🎣 '+rname(S.rod)+' ('+effMaxWeight()+' kg)</span>'+
+      '<span class="gear-badge '+(S.hookHp<=1?'warn':'')+'">🪝 '+hname(S.hook)+' ('+S.hookHp+'/'+hkMax+')</span>'+
+      '<span class="gear-badge">🚤 '+bname(S.boat)+' ('+S.deck.length+'/'+BOATS[S.boat][2]+')</span>'+
+      (S.accOn.length?'<span class="gear-badge">⚙️ '+S.accOn.length+'/5</span>':'');
+  }
+}
+
+function show(tab){
+  cur=tab;drawTabs();drawTop();syncDepthUI();
+  $('#fishsec').hidden=tab!=='fish';
+  $('#sec').hidden=tab==='fish';
+  if(tab!=='fish'){
+    $('#sec').innerHTML=({qb:vBank,lib:vLib,shop:vShop,mkt:vMkt,cards:vCards,set:vSet})[tab]();
+  }
+  bind();
+}
+function enter(tab){$('#start').hidden=true;$('#app').hidden=false;show(tab||'fish')}
+$('#s-go').onclick=()=>enter('fish');
+$('#s-qb').onclick=()=>enter('qb');
+$('#s-lib').onclick=()=>enter('lib');
+$('#s-ab').onclick=()=>msg('🎣 <b>'+t('ti')+'</b><br>'+(S.lang==='ar'?'إعداد وتطوير د. محسن الكاشف<br>':'')+'<b>Dr. Mohsen Elkashef</b>');
+
+/* ---------- Realistic 3D Fish SVG for Cards & Market ---------- */
+function fishSvg(f,found){
+  const c1=f[10],c2=f[11],id=f[0];
+  const gid='g_'+id+'_'+Math.random().toString(36).slice(2,6);
+  let extra='';
+  if(id==='sword'||id==='marlin')extra='<polygon points="78,26 113,24 78,29" fill="'+c1+'"/>';
+  else if(id==='shark'||id==='orca'||id==='hammerhead')extra='<polygon points="44,12 52,1 58,13" fill="'+c1+'"/>';
+  else if(id==='clown')extra='<rect x="36" y="13" width="5" height="26" rx="2" fill="#fff" stroke="#000" stroke-width="1"/><rect x="54" y="12" width="6" height="28" rx="2" fill="#fff" stroke="#000" stroke-width="1"/>';
+  else if(id==='lion')extra='<path d="M35,13 L30,3 M43,12 L42,2 M51,12 L53,2 M59,14 L64,4" stroke="'+c1+'" stroke-width="2.2"/>';
+  else if(id==='mack'||id==='tilapia')extra='<path d="M36,15 Q39,21 35,24 M44,14 Q47,20 43,23 M52,14 Q55,20 51,23 M60,15 Q63,21 59,24" stroke="#0f172a" stroke-width="1.6" fill="none"/>';
+  else if(id==='tuna')extra='<polygon points="24,16 27,12 29,16" fill="#facc15"/><polygon points="24,36 27,40 29,36" fill="#facc15"/>';
+  else if(id==='mola')extra='<polygon points="36,13 42,1 48,13" fill="'+c1+'"/><polygon points="36,39 42,51 48,39" fill="'+c1+'"/>';
+  else if(id==='octopus'||id==='squid')extra='<path d="M25,20 L6,12 M25,24 L4,22 M25,28 L4,32 M25,32 L7,42" stroke="'+c1+'" stroke-width="3" stroke-linecap="round"/>';
+  else if(id==='angler')extra='<path d="M68,14 Q82,4 86,16" stroke="#94a3b8" stroke-width="1.5" fill="none"/><circle cx="86" cy="17" r="3.5" fill="#fde047"/>';
+  else if(id==='oarfish'||id==='moray'||id==='leviathan')extra='<path d="M26,12 Q45,4 66,12" stroke="#ef4444" stroke-width="2.5" fill="none"/>';
+  return '<svg viewBox="0 0 116 54" width="110" height="52" style="margin:auto;'+(found?'':'filter:brightness(0) opacity(.42)')+'">'+
+    '<defs><linearGradient id="'+gid+'" x1="0" y1="0" x2="0" y2="1">'+
+      '<stop offset="0%" stop-color="'+c1+'"/><stop offset="55%" stop-color="'+c2+'"/><stop offset="100%" stop-color="#ffffff"/>'+
+    '</linearGradient></defs>'+
+    '<polygon points="24,26 5,11 11,26 5,41" fill="'+c1+'"/>'+
+    '<ellipse cx="52" cy="26" rx="'+(id==='mola'?22:32)+'" ry="'+(id==='mola'?18:14)+'" fill="url(#'+gid+')" stroke="rgba(0,0,0,.18)" stroke-width="1"/>'+
+    '<ellipse cx="52" cy="20" rx="22" ry="4" fill="rgba(255,255,255,.35)"/>'+
+    extra+
+    '<circle cx="71" cy="22" r="3.4" fill="#fff"/><circle cx="72" cy="22" r="1.7" fill="#0f172a"/>'+
+  '</svg>';
+}
+
+/* ---------- Standalone Question Bank View ---------- */
+function parseBulkQuestions(raw){
+  const text=raw.trim();
+  if(!text)return[];
+  if(text.startsWith('[')||text.startsWith('{')){
+    try{
+      const data=JSON.parse(text);
+      const arr=Array.isArray(data)?data:(data.questions||[]);
+      return arr.map((item,idx)=>{
+        const q=String(item.q||item.question||'').trim();
+        const o=Array.isArray(item.o||item.options)?(item.o||item.options).map(String):[];
+        const a=typeof item.a==='number'?item.a:0;
+        if(q&&o.length>=2)return{id:'qb_'+Date.now()+'_'+idx+'_'+Math.random().toString(36).slice(2,5),q,o,a:Math.max(0,Math.min(o.length-1,a)),cat:String(item.cat||'').trim()};
+        return null;
+      }).filter(Boolean);
+    }catch(e){}
+  }
+
+  const out=[];
+  const lines=text.split(/\r?\n/).map(l=>l.trim());
+  const pipeLines=lines.filter(l=>l.includes('|'));
+  if(pipeLines.length>=1&&pipeLines.length>=lines.filter(Boolean).length*0.5){
+    pipeLines.forEach((line,idx)=>{
+      const parts=line.split('|').map(p=>p.trim()).filter(Boolean);
+      if(parts.length>=3){
+        const qText=parts[0].replace(/^[\d٠-٩]+[\.\-\)\:]\s*/,'');
+        let ansIdx=0;
+        const opts=parts.slice(1).map((opt,oi)=>{
+          if(/[\*✔✓]|\(صح\)|\(صحيح\)/.test(opt)){
+            ansIdx=oi;
+            return opt.replace(/[\*✔✓]|\(صح\)|\(صحيح\)/g,'').trim();
+          }
+          return opt;
+        });
+        out.push({id:'qb_'+Date.now()+'_'+idx+'_'+Math.random().toString(36).slice(2,5),q:qText,o:opts,a:ansIdx,cat:''});
+      }
+    });
+    if(out.length)return out;
+  }
+
+  const blocks=[];
+  let curB=[];
+  for(const line of lines){
+    if(!line){
+      if(curB.length){blocks.push(curB);curB=[];}
+    }else{
+      if(curB.length>=3&&/^([\d٠-٩]+[\.\-\)\:]|س\s*[\d٠-٩]*[\:\-])/.test(line)){
+        blocks.push(curB);curB=[line];
+      }else{
+        curB.push(line);
+      }
+    }
+  }
+  if(curB.length)blocks.push(curB);
+
+  blocks.forEach((blk,idx)=>{
+    if(blk.length<3)return;
+    const qText=blk[0].replace(/^([\d٠-٩]+[\.\-\)\:]|س\s*[\d٠-٩]*[\:\-])\s*/,'').trim();
+    let ansIdx=0;
+    const opts=[];
+    for(let i=1;i<blk.length;i++){
+      let ln=blk[i];
+      if(/^(الإجابة|الجواب|الصواب|Answer)\s*[\:\-]/i.test(ln)){
+        const val=ln.replace(/^(الإجابة|الجواب|الصواب|Answer)\s*[\:\-]/i,'').trim();
+        const letterMap={'أ':0,'ا':0,'A':0,'a':0,'1':0,'ب':1,'B':1,'b':1,'2':1,'ج':2,'C':2,'c':2,'3':2,'د':3,'D':3,'d':3,'4':3};
+        if(val[0] in letterMap)ansIdx=Math.min(opts.length-1,letterMap[val[0]]);
+        continue;
+      }
+      const hasStar=/[\*✔✓]|\(صح\)|\(صحيح\)/.test(ln);
+      ln=ln.replace(/^([أابجدهـA-Da-d1-4][\)\.\-\:]|[\-\•])\s*/,'').replace(/[\*✔✓]|\(صح\)|\(صحيح\)/g,'').trim();
+      if(ln){
+        if(hasStar)ansIdx=opts.length;
+        opts.push(ln);
+      }
+    }
+    if(qText&&opts.length>=2){
+      out.push({id:'qb_'+Date.now()+'_'+idx+'_'+Math.random().toString(36).slice(2,5),q:qText,o:opts,a:Math.max(0,Math.min(opts.length-1,ansIdx)),cat:''});
+    }
+  });
+  return out;
+}
+
+function vBank(){
+  const allCats=[...new Set([...S.cats,...S.bank.map(q=>q.cat).filter(Boolean)])];
+  const filtered=S.bank.filter(q=>{
+    if(S.activeCat&&q.cat!==S.activeCat)return false;
+    if(!qbSearch)return true;
+    return q.q.includes(qbSearch)||(q.cat&&q.cat.includes(qbSearch))||q.o.some(x=>x.includes(qbSearch));
+  });
+  const catListHtml='<datalist id="cat-list">'+allCats.map(c=>'<option value="'+esc(c)+'">').join('')+'</datalist>';
+
+  let o='<h2>'+t('qbTitle')+'</h2>'+catListHtml;
+  o+='<div class="box" style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;background:var(--cd2)">'+
+     '<div><b>'+S.bankSel.length+'</b> / '+S.bank.length+' '+t('qn')+'</div>'+
+     '<div>'+
+       '<button id="qb-go" class="gold" '+(S.bankSel.length?'':'disabled')+'>'+t('qbStartFish')+' ('+S.bankSel.length+')</button>'+
+       '<button id="qb-restore" class="sec">'+t('qbRestore')+'</button>'+
+     '</div>'+
+     '</div>';
+
+  /* Fields / Domains Bar */
+  o+='<div class="box"><h3>'+t('qbFields')+'</h3>'+
+     '<div class="cat-bar">'+
+       '<span class="cat-chip '+(!S.activeCat?'on':'')+'" data-cat="">🌐 '+t('qbSelAll').replace('تحديد ','')+' ('+S.bank.length+')</span>'+
+       allCats.map(c=>{
+         const cnt=S.bank.filter(q=>q.cat===c).length;
+         return '<span class="cat-chip '+(S.activeCat===c?'on':'')+'" data-cat="'+esc(c)+'">📁 '+esc(c)+' ('+cnt+')</span>';
+       }).join('')+
+     '</div>'+
+     '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px">'+
+       '<input id="qb-newcat" type="text" placeholder="'+t('qbNewFieldPh')+'" style="flex:1;min-width:180px">'+
+       '<button id="qb-addcat" class="ok">'+t('qbNewField')+'</button>'+
+       (S.activeCat?'<button id="qb-usecat" class="gold">'+t('qbUseField')+' ('+esc(S.activeCat)+')</button>':'')+
+     '</div></div>';
+
+  o+='<div class="box"><h3>'+t('qbSingle')+'</h3>'+
+     '<input id="qb-q" type="text" placeholder="'+t('qbQPh')+'" style="width:100%;margin-bottom:6px">'+
+     '<div class="opt-grid">'+
+     [0,1,2,3].map(i=>'<div class="opt-row"><input type="radio" name="qb-cor" value="'+i+'" '+(i===0?'checked':'')+'><input id="qb-o'+i+'" type="text" placeholder="'+t('qbOptPh')+' '+(i+1)+(i===0?' ✔':'')+'"></div>').join('')+
+     '</div>'+
+     '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">'+
+     '<input id="qb-cat" list="cat-list" type="text" value="'+esc(S.activeCat||'')+'" placeholder="'+t('qbCatPh')+'" style="flex:1;min-width:160px">'+
+     '<button id="qb-add1" class="ok">'+t('qbAddOne')+'</button>'+
+     '</div></div>';
+
+  o+='<div class="box"><h3>'+t('qbBulk')+'</h3>'+
+     '<p style="font-size:.86rem;opacity:.88;margin:4px 0 8px">'+t('qbBulkHint')+'</p>'+
+     '<div style="margin-bottom:6px"><input id="qb-bulk-cat" list="cat-list" type="text" value="'+esc(S.activeCat||'')+'" placeholder="'+t('qbCatPh')+'" style="width:100%"></div>'+
+     '<textarea id="qb-bulk-txt" rows="5" placeholder="ما عاصمة السعودية؟ | الرياض* | جدة | الدمام | مكة\nكم عدد أركان الإسلام؟ | خمسة* | أربعة | ستة | ثلاثة"></textarea>'+
+     '<div style="margin-top:6px"><button id="qb-bulk-btn">'+t('qbBulkBtn')+'</button> <button id="qb-sample" class="sec">'+t('qbSample')+'</button></div>'+
+     '</div>';
+
+  o+='<div class="box">'+
+     '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:space-between;margin-bottom:8px">'+
+       '<input id="qb-srch" type="text" value="'+esc(qbSearch)+'" placeholder="'+t('qbFilter')+'" style="flex:1;min-width:180px">'+
+       '<div>'+
+         '<button id="qb-all" class="sec">'+t('qbSelAll')+'</button>'+
+         '<button id="qb-none" class="sec">'+t('qbDeselAll')+'</button>'+
+         '<button id="qb-s20" class="sec">'+t('qbSel20')+'</button>'+
+         '<button id="qb-s50" class="sec">'+t('qbSel50')+'</button>'+
+         '<button id="qb-del" class="bad">'+t('qbDelSel')+'</button>'+
+       '</div>'+
+     '</div>';
+
+  if(!filtered.length){
+    o+='<p style="text-align:center;opacity:.75;padding:14px">'+t('nq')+'</p>';
+  }else{
+    o+='<div class="qb-list">'+filtered.map((q,idx)=>{
+      const chk=S.bankSel.includes(q.id);
+      return '<div class="qb-item">'+
+        '<input type="checkbox" class="qb-chk" data-id="'+q.id+'" '+(chk?'checked':'')+'>'+
+        '<div style="flex:1"><b>'+(idx+1)+'. '+esc(q.q)+'</b>'+
+        '<div class="qb-meta">✔ <b>'+esc(q.o[q.a])+'</b> · '+q.o.map((x,oi)=>oi===q.a?'':esc(x)).filter(Boolean).join(' | ')+(q.cat?' · <span style="color:var(--ac);font-weight:700">['+esc(q.cat)+']</span>':'')+'</div>'+
+        '</div></div>';
+    }).join('')+'</div>';
+  }
+  o+='</div>';
+  return o;
+}
+
+/* ---------- Book Library View ---------- */
+function vLib(){
+  const bs=allB();
+  let o='<h2>📚 '+t('lb')+'</h2>';
+  if(S.sub&&S.book){
+    const b=bs.find(x=>x.id===S.book);
+    o+='<div class="box"><h3>'+t('pk')+'</h3><b>'+esc(b.n)+'</b> — '+b.p+' '+t('pg')+'<div style="margin:8px 0">';
+    for(let a=1,i=0;a<=b.p;a+=50,i++){
+      const e=Math.min(a+49,b.p),qs=allQ().filter(q=>q.b===b.id&&q.p>=a&&q.p<=e),sn=qs.filter(q=>S.seen.includes(q.id)).length,on=S.rs.some(r=>r[0]===a&&r[1]===e);
+      o+='<span class="chip '+(on?'on':'')+'" data-a="'+a+'" data-e="'+e+'">'+t('pt')+' '+(i+1)+': '+a+'–'+e+' · '+qs.length+' '+t('qn')+' · '+(qs.length?Math.round(100*sn/qs.length):0)+'%</span>';
+    }
+    o+='</div><h4>'+t('cu')+'</h4><input id="ca" type="number" min="1" max="'+b.p+'" placeholder="'+t('fr')+'" style="width:40%"> <input id="ce" type="number" min="1" max="'+b.p+'" placeholder="'+t('to')+'" style="width:40%"> <button id="cadd">'+t('ad')+'</button>'+
+       '<div style="margin-top:10px"><button id="gt" class="gold">'+t('go')+'</button> <button id="bk" class="sec">←</button></div>';
+    if(S.rs.length)o+='<p>'+S.rs.map(r=>r[0]+'–'+r[1]).join(' , ')+'</p>';
+    o+='</div>';
+    return o;
+  }
+  o+='<div class="grid">'+Array.from({length:5},(_,i)=>{
+    const b=bs[i];
+    if(!b)return'<div class="card dim"><div class="cover">📕</div><b>—</b><small>'+t('emp')+'</small></div>';
+    const n=allQ().filter(q=>q.b===b.id).length,s=allQ().filter(q=>q.b===b.id&&S.seen.includes(q.id)).length;
+    return'<div class="card"><div class="cover">📗</div><b>'+esc(b.n)+'</b><small>'+esc(b.a)+'</small><small>'+b.p+' '+t('pg')+' · '+n+' '+t('qn')+' · '+(n?Math.round(100*s/n):0)+'%</small><button data-bk="'+b.id+'">'+t('pb')+'</button></div>';
+  }).join('')+'</div>';
+  return o;
+}
+
+/* ---------- Shop View (9 Rods, 5 Hooks, 5 Accessories, 4 Boats) ---------- */
+function vShop(){
+  let o='<h2>🛒 '+t('sh')+' (🪙 '+S.coins+')</h2>';
+  o+='<div class="subtabs">'+
+     [['rods',t('shRods')],['hooks',t('shHooks')],['accs',t('shAcc')],['boats',t('shBoats')]].map(x=>
+       '<button class="'+(shopSub===x[0]?'on':'')+'" data-st="'+x[0]+'">'+x[1]+'</button>'
+     ).join('')+
+     '</div>';
+
+  if(shopSub==='rods'){
+    o+='<div class="grid">'+RODS.map((r,i)=>{
+      const owned=S.rods.includes(i),eq=S.rod===i;
+      return'<div class="card '+(eq?'equipped':'')+'">'+
+        '<div style="height:10px;border-radius:6px;background:linear-gradient(90deg,'+r[4]+','+r[5]+')"></div>'+
+        '<b>'+rname(i)+'</b>'+
+        '<small>⚖️ '+t('pw')+': <b>'+r[1]+' kg</b></small>'+
+        '<small>🌊 '+t('dp')+': <b>'+r[2]+' m</b></small>'+
+        '<small style="color:var(--ac)">✨ '+(r[6][idxL()]||r[6][0])+'</small>'+
+        '<small>🪙 '+r[3]+'</small>'+
+        (owned?(eq?'<span style="color:var(--ok);font-weight:700">'+t('eqd')+'</span>':'<button data-use-rod="'+i+'">'+t('eq')+'</button>'):'<button data-buy-rod="'+i+'">'+t('bu')+'</button>')+
+        '</div>';
+    }).join('')+'</div>';
+  }else if(shopSub==='hooks'){
+    o+='<div class="grid">'+HOOKS.map((h,i)=>{
+      const eq=S.hook===i,full=eq&&S.hookHp>=h[1];
+      return'<div class="card '+(eq?'equipped':'')+'">'+
+        '<div class="cover" style="color:'+h[3]+'">🪝</div>'+
+        '<b>'+hname(i)+'</b>'+
+        '<small>🛡️ '+t('dur')+': <b>'+h[1]+'</b></small>'+
+        (eq?'<small style="color:var(--ok)">'+S.hookHp+'/'+h[1]+'</small>':'')+
+        '<small>🪙 '+h[2]+'</small>'+
+        (full?'<span style="color:var(--ok);font-weight:700">'+t('eqd')+'</span>':'<button data-buy-hook="'+i+'">'+(eq?t('repair'):t('bu')+' & '+t('eq'))+'</button>')+
+        '</div>';
+    }).join('')+'</div>';
+  }else if(shopSub==='accs'){
+    o+='<div class="grid">'+ACCS.map(a=>{
+      const owned=S.accs.includes(a[0]),on=hasAcc(a[0]);
+      return'<div class="card '+(on?'equipped':'')+'">'+
+        '<div class="cover">'+a[3]+'</div>'+
+        '<b>'+aname(a)+'</b>'+
+        '<small>'+(a[4][idxL()]||a[4][0])+'</small>'+
+        '<small>🪙 '+a[2]+'</small>'+
+        (owned?'<button class="'+(on?'ok':'sec')+'" data-tog-acc="'+a[0]+'">'+(on?t('eqd'):t('eq'))+'</button>':'<button data-buy-acc="'+a[0]+'">'+t('bu')+'</button>')+
+        '</div>';
+    }).join('')+'</div>';
+  }else if(shopSub==='boats'){
+    o+='<div class="grid">'+BOATS.map((b,i)=>{
+      const owned=S.boats.includes(i),eq=S.boat===i;
+      return'<div class="card '+(eq?'equipped':'')+'">'+
+        '<div style="height:14px;border-radius:8px;background:linear-gradient(90deg,'+b[3]+','+b[4]+');border:2px solid '+b[5]+'"></div>'+
+        '<b>'+bname(i)+'</b>'+
+        '<small>🐟 '+t('boatCap')+': <b>'+b[2]+'</b></small>'+
+        '<small>🪙 '+b[1]+'</small>'+
+        (owned?(eq?'<span style="color:var(--ok);font-weight:700">'+t('eqd')+'</span>':'<button data-use-boat="'+i+'">'+t('eq')+'</button>'):'<button data-buy-boat="'+i+'">'+t('bu')+'</button>')+
+        '</div>';
+    }).join('')+'</div>';
+  }
+  return o;
+}
+
+/* ---------- Market View ---------- */
+function vMkt(){
+  const ks=F.filter(f=>S.fish[f[0]]&&S.fish[f[0]].k>0);
+  let o='<h2>💰 '+t('m')+'</h2><p style="font-size:.9rem;opacity:.88">'+t('hd')+'</p>';
+  if(!ks.length)o+='<p>'+t('nf')+'</p>';
+  else{
+    o+='<div class="grid">'+ks.map(f=>
+      '<div class="card r'+f[8]+'">'+fishSvg(f,1)+
+      '<b>'+esc(fname(f))+'</b>'+
+      '<small><i>'+f[2]+'</i></small>'+
+      '<small>⚖️ '+f[3]+' kg · × '+S.fish[f[0]].k+' · 🪙 '+f[9]+'</small>'+
+      '<button data-sell="'+f[0]+'">'+t('sl')+' (+🪙'+f[9]+')</button></div>'
+    ).join('')+'</div><div style="margin-top:8px"><button id="sall" class="gold">'+t('sa')+'</button></div>';
+  }
+  return o+'<h3>'+t('lg2')+'</h3><ul>'+S.log.slice(-12).reverse().map(l=>'<li>'+esc(l)+'</li>').join('')+'</ul>';
+}
+
+/* ---------- Fish Cards Encyclopedia View ---------- */
+function vCards(){
+  const n=Object.keys(S.fish).length;
+  return'<h2>🃏 '+t('c')+' — '+n+'/'+F.length+' ('+Math.round(100*n/F.length)+'%)</h2><div class="grid">'+
+    F.map(f=>{
+      const r=S.fish[f[0]];
+      return'<div class="card '+(r?'r'+f[8]:'dim')+'">'+fishSvg(f,!!r)+
+        '<b>'+(r?esc(fname(f)):'???')+'</b>'+
+        (r?'<small><i>'+f[2]+'</i></small><small>⚖️ '+f[3]+' kg · ≈ '+f[4]+' cm</small><small>🌊 '+f[5]+'–'+f[6]+' m · '+RAR[S.lang][f[8]]+'</small><small>'+esc(r.d)+' · ×'+r.n+'</small>':'<small>🌊 '+f[5]+'–'+f[6]+' m</small>')+
+        '</div>';
+    }).join('')+'</div>';
+}
+
+/* ---------- Settings View ---------- */
+function vSet(){
+  return'<h2>⚙️ '+t('se')+'</h2>'+
+    '<div class="box">'+t('lg')+': <select id="sl">'+LI.map(l=>'<option value="'+l+'"'+(l===S.lang?' selected':'')+'>'+LN[l]+'</option>').join('')+'</select></div>'+
+    '<div class="box">'+t('sn')+': <input id="vol" type="range" min="0" max="1" step=".1" value="'+S.vol+'"></div>'+
+    '<div class="box"><button id="tch">'+t('tc')+'</button> <button id="thm" class="sec">🌓 '+t('theme')+'</button> <button id="rst" class="bad">'+t('rs')+'</button></div>'+
+    '<div class="box"><b>'+(S.lang==='ar'?'إعداد وتطوير د. محسن الكاشف<br>':'')+'Dr. Mohsen Elkashef</b></div>';
+}
+
+/* ---------- Event Binding ---------- */
+function bind(){
+  const q=(s,fn)=>document.querySelectorAll(s).forEach(fn);
+
+  q('.cat-chip',c=>c.onclick=()=>{
+    S.activeCat=c.dataset.cat||'';
+    save();show('qb');
+  });
+  const qbAddCat=$('#qb-addcat');
+  if(qbAddCat)qbAddCat.onclick=()=>{
+    const nc=$('#qb-newcat').value.trim();
+    if(!nc)return msg(t('inv'));
+    if(!S.cats.includes(nc))S.cats.push(nc);
+    S.activeCat=nc;
+    save();show('qb');
+  };
+  const qbUseCat=$('#qb-usecat');
+  if(qbUseCat)qbUseCat.onclick=()=>{
+    if(!S.activeCat)return;
+    const ids=S.bank.filter(x=>x.cat===S.activeCat).map(x=>x.id);
+    if(!ids.length)return msg(t('nq'));
+    S.bankSel=ids;S.bankDone=[];S.mode='bank';S.review=false;
+    save();show('fish');
+  };
+  const qbRestore=$('#qb-restore');
+  if(qbRestore)qbRestore.onclick=()=>{
+    const existingIds=new Set(S.bank.map(x=>x.id));
+    INIT_BANK.forEach(item=>{
+      if(!existingIds.has(item.id)){
+        S.bank.push({...item,o:[...item.o]});
+        if(!S.bankSel.includes(item.id))S.bankSel.push(item.id);
+        if(item.cat&&!S.cats.includes(item.cat))S.cats.push(item.cat);
+      }
+    });
+    S.bankDone=[];save();
+    msg('✅ '+S.bank.length+' '+t('qn'),()=>show('qb'));
+  };
+
+  const qbAdd1=$('#qb-add1');
+  if(qbAdd1)qbAdd1.onclick=()=>{
+    const qt=$('#qb-q').value.trim();
+    const rad=document.querySelector('input[name="qb-cor"]:checked');
+    const rawIdx=rad?+rad.value:0;
+    const rawOpts=[0,1,2,3].map(i=>({txt:$('#qb-o'+i).value.trim(),cor:i===rawIdx})).filter(x=>x.txt);
+    if(!qt||rawOpts.length<2)return msg(t('inv'));
+    const opts=rawOpts.map(x=>x.txt);
+    const foundCor=rawOpts.findIndex(x=>x.cor);
+    const ans=foundCor>=0?foundCor:0;
+    const cat=$('#qb-cat').value.trim()||S.activeCat||'عام';
+    if(!S.cats.includes(cat))S.cats.push(cat);
+    const id='qb_'+Date.now()+'_'+Math.random().toString(36).slice(2,5);
+    S.bank.unshift({id,q:qt,o:opts,a:ans,cat});
+    S.bankSel.push(id);
+    save();show('qb');
+  };
+  const qbBulk=$('#qb-bulk-btn');
+  if(qbBulk)qbBulk.onclick=()=>{
+    const parsed=parseBulkQuestions($('#qb-bulk-txt').value);
+    if(!parsed.length)return msg(t('inv'));
+    const cat=($('#qb-bulk-cat')?$('#qb-bulk-cat').value.trim():'')||S.activeCat||'عام';
+    if(!S.cats.includes(cat))S.cats.push(cat);
+    parsed.forEach(item=>{
+      item.cat=cat;
+      S.bank.unshift(item);
+      S.bankSel.push(item.id);
+    });
+    save();
+    msg('✅ '+parsed.length+' '+t('qn')+' ['+esc(cat)+']',()=>show('qb'));
+  };
+  const qbSample=$('#qb-sample');
+  if(qbSample)qbSample.onclick=()=>{
+    $('#qb-bulk-txt').value=
+      'ما علامة رفع جمع المذكر السالم؟ | الواو* | الألف | الضمة | ثبوت النون\n'+
+      'كم عدد مخارج الحروف الرئيسية؟ | خمسة* | ثلاثة | سبعة | أربعة\n'+
+      'ما السورة التي تسمى قلب القرآن؟ | يس* | الملك | الواقعة | الرحمن\n'+
+      'الفعل المضارع المسبوق بـ (لم) يكون: | مجزوماً* | منصوباً | مرفوعاً | مبنياً';
+  };
+  const qbSrch=$('#qb-srch');
+  if(qbSrch)qbSrch.oninput=()=>{
+    qbSearch=qbSrch.value;
+    show('qb');
+    const el=$('#qb-srch');
+    if(el){el.focus();el.setSelectionRange(el.value.length,el.value.length);}
+  };
+  q('.qb-chk',c=>c.onchange=()=>{
+    const id=c.dataset.id;
+    if(c.checked){if(!S.bankSel.includes(id))S.bankSel.push(id);}
+    else S.bankSel=S.bankSel.filter(x=>x!==id);
+    save();show('qb');
+  });
+  const qbAll=$('#qb-all');if(qbAll)qbAll.onclick=()=>{
+    const targetIds=S.activeCat?S.bank.filter(x=>x.cat===S.activeCat).map(x=>x.id):S.bank.map(x=>x.id);
+    targetIds.forEach(id=>{if(!S.bankSel.includes(id))S.bankSel.push(id);});
+    save();show('qb');
+  };
+  const qbNone=$('#qb-none');if(qbNone)qbNone.onclick=()=>{
+    if(S.activeCat){
+      const catIds=new Set(S.bank.filter(x=>x.cat===S.activeCat).map(x=>x.id));
+      S.bankSel=S.bankSel.filter(id=>!catIds.has(id));
+    }else S.bankSel=[];
+    save();show('qb');
+  };
+  const qb20=$('#qb-s20');if(qb20)qb20.onclick=()=>{
+    const list=S.activeCat?S.bank.filter(x=>x.cat===S.activeCat):S.bank;
+    S.bankSel=list.slice(0,20).map(x=>x.id);save();show('qb');
+  };
+  const qb50=$('#qb-s50');if(qb50)qb50.onclick=()=>{
+    const list=S.activeCat?S.bank.filter(x=>x.cat===S.activeCat):S.bank;
+    S.bankSel=list.slice(0,50).map(x=>x.id);save();show('qb');
+  };
+  const qbDel=$('#qb-del');if(qbDel)qbDel.onclick=()=>{
+    S.bank=S.bank.filter(x=>!S.bankSel.includes(x.id));
+    S.bankSel=[];S.bankDone=[];save();show('qb');
+  };
+  const qbGo=$('#qb-go');if(qbGo)qbGo.onclick=()=>{
+    if(!S.bankSel.length)return msg(t('nq'));
+    S.mode='bank';S.review=false;S.bankDone=[];save();show('fish');
+  };
+  const qbBulk=$('#qb-bulk-btn');
+  if(qbBulk)qbBulk.onclick=()=>{
+    const parsed=parseBulkQuestions($('#qb-bulk-txt').value);
+    if(!parsed.length)return msg(t('inv'));
+    parsed.forEach(item=>{
+      S.bank.unshift(item);
+      S.bankSel.push(item.id);
+    });
+    save();
+    msg('✅ '+parsed.length+' '+t('qn'),()=>show('qb'));
+  };
+  const qbSample=$('#qb-sample');
+  if(qbSample)qbSample.onclick=()=>{
+    $('#qb-bulk-txt').value=
+      'ما علامة رفع جمع المذكر السالم؟ | الواو* | الألف | الضمة | ثبوت النون\n'+
+      'كم عدد مخارج الحروف الرئيسية؟ | خمسة* | ثلاثة | سبعة | أربعة\n'+
+      'ما السورة التي تسمى قلب القرآن؟ | يس* | الملك | الواقعة | الرحمن\n'+
+      'الفعل المضارع المسبوق بـ (لم) يكون: | مجزوماً* | منصوباً | مرفوعاً | مبنياً';
+  };
+  const qbSrch=$('#qb-srch');
+  if(qbSrch)qbSrch.oninput=()=>{
+    qbSearch=qbSrch.value;
+    show('qb');
+    const el=$('#qb-srch');
+    if(el){el.focus();el.setSelectionRange(el.value.length,el.value.length);}
+  };
+  q('.qb-chk',c=>c.onchange=()=>{
+    const id=c.dataset.id;
+    if(c.checked){if(!S.bankSel.includes(id))S.bankSel.push(id);}
+    else S.bankSel=S.bankSel.filter(x=>x!==id);
+    save();show('qb');
+  });
+  const qbAll=$('#qb-all');if(qbAll)qbAll.onclick=()=>{S.bankSel=S.bank.map(x=>x.id);save();show('qb')};
+  const qbNone=$('#qb-none');if(qbNone)qbNone.onclick=()=>{S.bankSel=[];save();show('qb')};
+  const qb20=$('#qb-s20');if(qb20)qb20.onclick=()=>{S.bankSel=S.bank.slice(0,20).map(x=>x.id);save();show('qb')};
+  const qb50=$('#qb-s50');if(qb50)qb50.onclick=()=>{S.bankSel=S.bank.slice(0,50).map(x=>x.id);save();show('qb')};
+  const qbDel=$('#qb-del');if(qbDel)qbDel.onclick=()=>{
+    S.bank=S.bank.filter(x=>!S.bankSel.includes(x.id));
+    S.bankSel=[];save();show('qb');
+  };
+  const qbGo=$('#qb-go');if(qbGo)qbGo.onclick=()=>{
+    if(!S.bankSel.length)return msg(t('nq'));
+    S.mode='bank';S.review=false;save();show('fish');
+  };
+
+  q('[data-bk]',b=>b.onclick=()=>{S.book=b.dataset.bk;S.rs=[];S.sub=1;save();show('lib')});
+  q('.chip',c=>c.onclick=()=>{
+    const a=+c.dataset.a,e=+c.dataset.e,i=S.rs.findIndex(r=>r[0]===a&&r[1]===e);
+    i<0?S.rs.push([a,e]):S.rs.splice(i,1);save();show('lib');
+  });
+  const ad=$('#cadd');
+  if(ad)ad.onclick=()=>{
+    const b=allB().find(x=>x.id===S.book),a=parseInt($('#ca').value),e=parseInt($('#ce').value);
+    if(!(a>=1&&e>=a&&e<=b.p))return msg(t('inv'));
+    S.rs.push([a,e]);save();show('lib');
+  };
+  const gt=$('#gt');
+  if(gt)gt.onclick=()=>{
+    if(!S.rs.length)return msg(t('inv'));
+    S.mode='book';S.review=false;save();show('fish');
+  };
+  const bk=$('#bk');if(bk)bk.onclick=()=>{S.sub=0;show('lib')};
+
+  q('[data-st]',b=>b.onclick=()=>{shopSub=b.dataset.st;show('shop')});
+  q('[data-buy-rod]',b=>b.onclick=()=>{
+    const i=+b.dataset.buyRod,price=RODS[i][3];
+    if(S.rods.includes(i))return;
+    if(S.coins<price)return msg(t('nm'));
+    S.coins-=price;S.rods.push(i);S.rod=i;
+    S.log.push('− '+price+' 🪙 '+rname(i));
+    sfx('coin');save();show('shop');
+  });
+  q('[data-use-rod]',b=>b.onclick=()=>{S.rod=+b.dataset.useRod;save();show('shop')});
+
+  q('[data-buy-hook]',b=>b.onclick=()=>{
+    const i=+b.dataset.buyHook,price=HOOKS[i][2];
+    if(S.hook===i&&S.hookHp>=HOOKS[i][1])return;
+    if(S.coins<price)return msg(t('nm'));
+    S.coins-=price;S.hook=i;S.hookHp=HOOKS[i][1];
+    S.log.push('− '+price+' 🪙 '+hname(i));
+    sfx('coin');save();show('shop');
+  });
+
+  q('[data-buy-acc]',b=>b.onclick=()=>{
+    const id=b.dataset.buyAcc,a=ACCS.find(x=>x[0]===id);
+    if(!a||S.accs.includes(id))return;
+    if(S.coins<a[2])return msg(t('nm'));
+    S.coins-=a[2];S.accs.push(id);if(!S.accOn.includes(id))S.accOn.push(id);
+    S.log.push('− '+a[2]+' 🪙 '+aname(a));
+    sfx('coin');save();show('shop');
+  });
+  q('[data-tog-acc]',b=>b.onclick=()=>{
+    const id=b.dataset.togAcc;
+    if(S.accOn.includes(id))S.accOn=S.accOn.filter(x=>x!==id);
+    else S.accOn.push(id);
+    save();show('shop');
+  });
+
+  q('[data-buy-boat]',b=>b.onclick=()=>{
+    const i=+b.dataset.buyBoat,price=BOATS[i][1];
+    if(S.boats.includes(i))return;
+    if(S.coins<price)return msg(t('nm'));
+    S.coins-=price;S.boats.push(i);S.boat=i;
+    S.log.push('− '+price+' 🪙 '+bname(i));
+    sfx('coin');save();show('shop');
+  });
+  q('[data-use-boat]',b=>b.onclick=()=>{S.boat=+b.dataset.useBoat;save();show('shop')});
+
+  q('[data-sell]',b=>b.onclick=()=>{sell(b.dataset.sell,1);show('mkt')});
+  const sa=$('#sall');if(sa)sa.onclick=()=>{F.forEach(f=>{if(f[8]<2&&S.fish[f[0]])sell(f[0],S.fish[f[0]].k)});show('mkt')};
+
+  const sl=$('#sl');if(sl)sl.onchange=()=>lang(sl.value);
+  const v=$('#vol');if(v)v.oninput=()=>{S.vol=+v.value;save()};
+  const tc=$('#tch');if(tc)tc.onclick=teacher;
+  const thm=$('#thm');if(thm)thm.onclick=toggleTheme;
+  const rs=$('#rst');if(rs)rs.onclick=()=>{S=def();save();apply();show('set')};
+}
+
+function sell(id,n){
+  const f=F.find(x=>x[0]===id),r=S.fish[id];
+  if(!r||r.k<1)return;
+  n=Math.min(n,r.k);
+  r.k-=n;r.s=(r.s||0)+n;
+  let rem=n;
+  S.deck=S.deck.filter(did=>{if(did===id&&rem>0){rem--;return false;}return true;});
+  S.coins+=n*f[9];
+  S.log.push('+ '+n*f[9]+' 🪙 '+fname(f)+' ×'+n);
+  sfx('coin');save();drawTop();
+}
+
+function teacher(){
+  $('#mbox').innerHTML='<h3>'+t('tc')+'</h3><input id="pin" type="password" placeholder="'+t('pn')+'"><button id="pk">OK</button>';
+  open();
+  $('#pk').onclick=()=>{
+    if($('#pin').value!=='1234')return;
+    const rows=allB().map(b=>{const qs=allQ().filter(q=>q.b===b.id),s=qs.filter(q=>S.seen.includes(q.id)).length;return'<li>'+esc(b.n)+': '+qs.length+' '+t('qn')+' · '+s+' ✔</li>'}).join('');
+    $('#mbox').innerHTML='<h3>'+t('tc')+'</h3><p>'+(S.ans?Math.round(100*S.right/S.ans):0)+'% ('+S.right+'/'+S.ans+')</p><ul>'+rows+'</ul><textarea id="ji" rows="6" dir="ltr" placeholder=\'{"books":[{"id":"b2","n":"Title","a":"Author","p":120}],"questions":[{"id":"b2-1","b":"b2","p":5,"t":"mcq","q":"…","o":["…","…"],"a":0}]}\'></textarea><button id="jb">'+t('im')+'</button><button id="jc" class="sec">OK</button>';
+    $('#jc').onclick=close;
+    $('#jb').onclick=()=>{
+      try{
+        const j=JSON.parse($('#ji').value);
+        (j.books||[]).forEach(b=>{if(b.id&&b.n&&b.p>0&&!allB().some(x=>x.id===b.id)&&allB().length<5)S.books.push({id:String(b.id),n:String(b.n),a:String(b.a||''),p:+b.p})});
+        let n=0;
+        (j.questions||[]).forEach(q=>{const b=allB().find(x=>x.id===q.b);if(b&&q.id&&q.q&&Array.isArray(q.o)&&q.o.length>1&&q.a>=0&&q.a<q.o.length&&q.p>=1&&q.p<=b.p&&!allQ().some(x=>x.id===q.id)){S.qs.push({id:String(q.id),b:q.b,p:+q.p,t:q.t||'mcq',q:String(q.q),o:q.o.map(String),a:+q.a});n++}});
+        save();msg(n+' ✔');
+      }catch(e){msg('JSON ✗')}
+    };
+  };
+}
+
+/* ---------- Questions & Streamlined Catch Flow ---------- */
+function nextQ(){
+  const p=activePool();
+  if(!p.length)return{e:'nq'};
+  if(S.mode==='bank'){
+    if(S.review){
+      const rw=p.filter(q=>S.wrong.includes(q.id));
+      if(rw.length){
+        const chosen=rw[Math.floor(Math.random()*rw.length)];
+        lastQId=chosen.id;
+        return{q:chosen};
+      }
+      S.review=false;
+    }
+    let rem=p.filter(q=>!S.bankDone.includes(q.id));
+    if(!rem.length){
+      S.bankDone=[];
+      rem=p;
+    }
+    const noRepeat=rem.length>1?rem.filter(q=>q.id!==lastQId):rem;
+    const chosen=noRepeat[Math.floor(Math.random()*noRepeat.length)];
+    lastQId=chosen.id;
+    return{q:chosen};
+  }
+  const c=S.review?p.filter(q=>S.wrong.includes(q.id)):p.filter(q=>!S.seen.includes(q.id));
+  if(!c.length){
+    if(S.review&&S.wrong.length===0){
+      S.review=false;
+      const fresh=p.filter(q=>!S.seen.includes(q.id));
+      if(fresh.length)return{q:fresh[Math.floor(Math.random()*fresh.length)]};
+    }
+    return{e:'cm'};
+  }
+  return{q:c[Math.floor(Math.random()*c.length)]};
+}
+
+function showQ(q){
+  if(!q||!tgt){ph='idle';tgt=null;return;}
+  if(!S.seen.includes(q.id))S.seen.push(q.id);
+  if(S.mode==='bank'&&!S.bankDone.includes(q.id))S.bankDone.push(q.id);
+  save();
+  const dir=/[\u0600-\u06FF]/.test(q.q)?'rtl':'ltr';
+  $('#mbox').innerHTML=
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:.85rem;opacity:.85">'+
+      '<span>🐠 <b>'+esc(fname(tgt.f))+'</b> ('+tgt.f[3]+' kg · '+RAR[S.lang][tgt.f[8]]+')</span>'+
+      '<span>'+(q.cat?'📁 '+esc(q.cat)+' · ':'')+'🌊 '+S.targetDepth+' m</span>'+
+    '</div>'+
+    '<p class="q" dir="'+dir+'">'+esc(q.q)+'</p>'+
+    q.o.map((o,i)=>'<button class="o" dir="'+dir+'" data-i="'+i+'">'+esc(o)+'</button>').join('');
+  open();
+  document.querySelectorAll('.o').forEach(b=>b.onclick=()=>answer(q,+b.dataset.i));
+}
+
+function answer(q,i){
+  S.ans++;
+  close();
+  if(i===q.a){
+    S.right++;
+    S.wrong=S.wrong.filter(x=>x!==q.id);
+    let coinMult=1,xpMult=1;
+    if(S.rod===1)xpMult+=.05;
+    if(S.rod===2)coinMult+=.10;
+    if(S.rod===4)xpMult+=.15;
+    if(S.rod===6)coinMult+=.20;
+    if(S.rod===8){coinMult+=.30;xpMult+=.30;}
+    if(hasAcc('reel'))coinMult+=.15;
+
+    const earnedCoins=Math.round((4+tgt.f[9]*0.2)*coinMult);
+    const earnedXp=Math.round((8+tgt.f[8]*8)*xpMult);
+    S.coins+=earnedCoins;
+    S.xp+=earnedXp;
+    S.unlockedDepth=Math.min(500,S.unlockedDepth+25);
+    sfx('win');
+    save();drawTop();syncDepthUI();
+    ph='reeling';
+    banner='✅ +'+earnedCoins+' 🪙 · +25m 🌊';
+    bannerT=140;
+  }else{
+    if(!S.wrong.includes(q.id))S.wrong.push(q.id);
+    sfx('bad');
+    save();
+    ph='flee';
+    tgt.d=tgt.x<hx?-1:1;
+    msg('❌ <b>'+t('no')+'</b><br>'+t('ex')+': <b style="color:var(--ok)">'+esc(q.o[q.a])+'</b>');
+  }
+}
+
+/* ---------- Canvas Fishing Engine & 3D Fish Rendering ---------- */
+const cv=$('#cv'),cx=cv.getContext('2d');
+const SURFACE_Y=125;
+let ph='idle';
+let hx=430,hy=SURFACE_Y-10,camY=0,seaZoom=1,tgt=null,bb=[],bgFish=[],banner='',bannerT=0;
+
+$('#dp-sl').oninput=function(){
+  S.targetDepth=+this.value;
+  save();syncDepthUI();
+};
+$('#bswitch').onclick=()=>{
+  if(S.mode==='book'&&S.bankSel.length){S.mode='bank';}
+  else{S.mode='book';}
+  save();drawTop();
+  if(S.mode==='bank')show('qb');
+};
+
+function fishPoolForDepth(d){
+  const list=F.filter(f=>d>=f[5]-12&&d<=f[6]+20);
+  return list.length?list:F.slice(0,6);
+}
+function spawnBgFish(){
+  bgFish=[];
+  for(let i=0;i<46;i++){
+    // Bias slightly more fish into deeper vast waters so the sea feels teeming everywhere
+    const depth=i<14?(6+Math.random()*85):(55+Math.random()*435);
+    const pool=fishPoolForDepth(depth);
+    const f=pool[Math.floor(Math.random()*pool.length)];
+    const spread=480+(depth/500)*620;
+    bgFish.push({
+      f,
+      x:(Math.random()*2-0.5)*spread,
+      depth,
+      d:Math.random()<.5?1:-1,
+      s:.4+Math.random()*.95,
+      phase:Math.random()*6.28
+    });
+  }
+}
+spawnBgFish();
+
+$('#bc').onclick=()=>{
+  if(ph!=='idle')return;
+  const p=activePool();
+  if(!p.length)return msg(t('ch'),()=>show(S.mode==='bank'?'qb':'lib'));
+  const n=nextQ();
+  if(n.e){
+    if(n.e==='cm'){
+      return msg(t('cm'),()=>{
+        p.forEach(q=>{S.seen=S.seen.filter(id=>id!==q.id);});
+        S.review=false;save();
+      },S.wrong.length?[t('rv'),()=>{S.review=true;save()}]:null);
+    }
+    return msg(t(n.e));
+  }
+  ph='down';
+  sfx('cast');
+};
+
+function pickTargetFish(depth){
+  const maxW=effMaxWeight();
+  const inZone=fishPoolForDepth(depth);
+  const catchable=inZone.filter(f=>f[3]<=maxW);
+  const pool=(catchable.length&&Math.random()<.85)?catchable:inZone;
+  const w=[];
+  pool.forEach(f=>{
+    const r=f[8];
+    let wt=1;
+    if(r===0)wt=Math.max(1,Math.round(7-depth/65));
+    else if(r===1)wt=Math.max(1,Math.round(5-depth/115));
+    else if(r===2)wt=Math.round(2+depth/50);
+    else if(r===3)wt=Math.round(1+depth/42+(hasAcc('light')?3:0));
+    else wt=Math.round(1+depth/36+(hasAcc('light')?4:0));
+    for(let i=0;i<wt;i++)w.push(f);
+  });
+  return w[Math.floor(Math.random()*w.length)];
+}
+
+function landFishInBoat(f){
+  ph='idle';
+  const nw=!S.fish[f[0]];
+  const r=S.fish[f[0]]||(S.fish[f[0]]={n:0,k:0,s:0,d:new Date().toLocaleDateString()});
+  r.n++;r.k++;
+  const cap=BOATS[S.boat][2];
+  S.deck.push(f[0]);
+  if(S.deck.length>cap)S.deck.shift();
+  save();drawTop();syncDepthUI();
+  const caught=f;
+  tgt=null;
+  if(nw){
+    msg('🎉 <b>'+t('nw')+'</b><div class="card r'+caught[8]+'" style="margin-top:10px">'+fishSvg(caught,1)+'<b>'+esc(fname(caught))+'</b><small><i>'+caught[2]+'</i></small><small>⚖️ '+caught[3]+' kg · ≈ '+caught[4]+' cm</small><small>'+RAR[S.lang][caught[8]]+' · 🪙 '+caught[9]+'</small></div>');
+  }
+}
+
+/* ---------- Realistic 3D-Shaded Anatomical Fish Renderer ---------- */
+function drawFish3D(f,x,y,dir,scaleMult=1,time=0){
+  const id=f[0],len=f[4],c1=f[10],c2=f[11];
+  const baseR=(11+Math.min(36,Math.log(len+2)*5.5))*scaleMult;
+  const wag=Math.sin(time*7+x*0.03)*0.24;
+
+  cx.save();
+  cx.translate(x,y);
+  cx.scale(dir,1);
+
+  /* Custom Anatomical Silhouettes for Special Marine Creatures */
+  if(id==='octopus'||id==='squid'){
+    // Animated trailing tentacles
+    for(let ti=-2;ti<=2;ti++){
+      const wave=Math.sin(time*6+ti*1.1)*6*scaleMult;
+      cx.strokeStyle=c1;
+      cx.lineWidth=(id==='squid'?2.6:3.4)*scaleMult;
+      cx.lineCap='round';
+      cx.beginPath();
+      cx.moveTo(-baseR*0.4,ti*baseR*0.24);
+      cx.quadraticCurveTo(-baseR*1.3,ti*baseR*0.35+wave,-baseR*2.05,ti*baseR*0.45-wave);
+      cx.stroke();
+    }
+    const mg=cx.createLinearGradient(0,-baseR,0,baseR);
+    mg.addColorStop(0,c1);mg.addColorStop(1,c2);
+    cx.fillStyle=mg;
+    cx.beginPath();
+    if(id==='squid'){
+      cx.moveTo(baseR*1.5,0);
+      cx.lineTo(baseR*0.75,-baseR*0.75);
+      cx.lineTo(-baseR*0.65,-baseR*0.48);
+      cx.lineTo(-baseR*0.65,baseR*0.48);
+      cx.lineTo(baseR*0.75,baseR*0.75);
+      cx.closePath();
+    }else{
+      cx.ellipse(baseR*0.25,0,baseR*1.05,baseR*0.78,0,0,Math.PI*2);
+    }
+    cx.fill();
+    cx.fillStyle='#ffffff';cx.beginPath();cx.arc(baseR*0.35,-baseR*0.22,baseR*0.22,0,Math.PI*2);cx.fill();
+    cx.fillStyle='#0f172a';cx.beginPath();cx.arc(baseR*0.4,-baseR*0.22,baseR*0.12,0,Math.PI*2);cx.fill();
+    cx.restore();
+    return;
+  }
+
+  if(id==='manta'){
+    const flap=Math.sin(time*4.5)*baseR*0.45;
+    cx.strokeStyle=c1;cx.lineWidth=2.2*scaleMult;
+    cx.beginPath();cx.moveTo(-baseR*0.8,0);cx.quadraticCurveTo(-baseR*1.6,flap*0.3,-baseR*2.3,-flap*0.2);cx.stroke();
+    const mg=cx.createLinearGradient(0,-baseR,0,baseR);
+    mg.addColorStop(0,c1);mg.addColorStop(1,c2);
+    cx.fillStyle=mg;
+    cx.beginPath();
+    cx.moveTo(baseR*1.1,0);
+    cx.quadraticCurveTo(baseR*0.1,-baseR*1.65+flap,-baseR*0.95,-baseR*0.25);
+    cx.quadraticCurveTo(-baseR*0.4,0,-baseR*0.95,baseR*0.25);
+    cx.quadraticCurveTo(baseR*0.1,baseR*1.65-flap,baseR*1.1,0);
+    cx.fill();
+    cx.fillStyle='#fff';cx.beginPath();cx.arc(baseR*0.65,-baseR*0.18,baseR*0.14,0,Math.PI*2);cx.fill();
+    cx.restore();
+    return;
+  }
+
+  if(id==='oarfish'||id==='moray'||id==='leviathan'){
+    const segs=12,step=baseR*0.36;
+    cx.lineCap='round';
+    for(let s=segs;s>=0;s--){
+      const sx=(segs/2-s)*step;
+      const sy=Math.sin(time*5.5-s*0.65)*baseR*0.28;
+      const rad=baseR*(0.42-s*0.022);
+      cx.fillStyle=s%2===0?c1:c2;
+      cx.beginPath();cx.arc(sx,sy,Math.max(2,rad),0,Math.PI*2);cx.fill();
+      if(id==='oarfish'||id==='leviathan'){
+        cx.strokeStyle=id==='oarfish'?'#ef4444':'#fde047';
+        cx.lineWidth=1.8*scaleMult;
+        cx.beginPath();cx.moveTo(sx,sy-rad);cx.lineTo(sx-2,sy-rad-baseR*0.38);cx.stroke();
+      }
+    }
+    const hx2=(segs/2)*step,hy2=Math.sin(time*5.5)*baseR*0.28;
+    cx.fillStyle='#fff';cx.beginPath();cx.arc(hx2+baseR*0.15,hy2-baseR*0.1,baseR*0.18,0,Math.PI*2);cx.fill();
+    cx.fillStyle='#0f172a';cx.beginPath();cx.arc(hx2+baseR*0.18,hy2-baseR*0.1,baseR*0.09,0,Math.PI*2);cx.fill();
+    cx.restore();
+    return;
+  }
+
+  let rx=baseR*1.65,ry=baseR*0.62;
+  if(id==='barracuda'){rx=baseR*2.35;ry=baseR*0.42;}
+  else if(id==='sardine'||id==='mack'||id==='mullet'){rx=baseR*1.9;ry=baseR*0.48;}
+  else if(id==='sword'||id==='marlin'){rx=baseR*1.95;ry=baseR*0.56;}
+  else if(id==='shark'||id==='hammerhead'||id==='orca'){rx=baseR*2.15;ry=baseR*0.64;}
+  else if(id==='mola'){rx=baseR*1.15;ry=baseR*1.18;}
+  else if(id==='clown'||id==='bream'||id==='tilapia'||id==='butterfly'||id==='tang'){rx=baseR*1.42;ry=baseR*0.76;}
+  else if(id==='angler'){rx=baseR*1.35;ry=baseR*0.88;}
+
+  // 1. Animated Tail Fin
+  cx.save();
+  cx.translate(-rx*0.88,0);
+  cx.rotate(wag);
+  cx.fillStyle=id==='tang'?'#facc15':c1;
+  cx.beginPath();
+  if(id==='mola'){
+    cx.moveTo(0,-ry*0.75);
+    cx.quadraticCurveTo(-baseR*0.45,-ry*0.35,-baseR*0.32,0);
+    cx.quadraticCurveTo(-baseR*0.45,ry*0.35,0,ry*0.75);
+  }else if(id==='shark'||id==='hammerhead'){
+    cx.moveTo(0,-ry*0.35);
+    cx.lineTo(-baseR*1.15,-ry*1.25);
+    cx.lineTo(-baseR*0.6,0);
+    cx.lineTo(-baseR*0.95,ry*0.9);
+    cx.lineTo(0,ry*0.35);
+  }else if(id==='tuna'||id==='sword'||id==='marlin'||id==='mack'){
+    cx.moveTo(0,-ry*0.3);
+    cx.lineTo(-baseR*1.05,-ry*1.05);
+    cx.lineTo(-baseR*0.55,0);
+    cx.lineTo(-baseR*1.05,ry*1.05);
+    cx.lineTo(0,ry*0.3);
+  }else{
+    cx.moveTo(0,-ry*0.35);
+    cx.quadraticCurveTo(-baseR*0.95,-ry*0.95,-baseR*0.85,0);
+    cx.quadraticCurveTo(-baseR*0.95,ry*0.95,0,ry*0.35);
+  }
+  cx.closePath();
+  cx.fill();
+  cx.restore();
+
+  // 2. Dorsal & Anal Fins
+  cx.fillStyle=c1;
+  if(id==='shark'||id==='hammerhead'||id==='orca'){
+    cx.beginPath();
+    cx.moveTo(-rx*0.15,-ry*0.85);
+    cx.lineTo(rx*0.05,-ry*1.95);
+    cx.lineTo(rx*0.32,-ry*0.82);
+    cx.closePath();cx.fill();
+  }else if(id==='sword'||id==='marlin'){
+    cx.beginPath();
+    cx.moveTo(-rx*0.2,-ry*0.85);
+    cx.quadraticCurveTo(rx*0.25,-ry*(id==='marlin'?2.2:1.9),rx*0.48,-ry*0.8);
+    cx.closePath();cx.fill();
+  }else if(id==='mola'){
+    cx.beginPath();
+    cx.moveTo(-rx*0.2,-ry*0.88);cx.lineTo(-rx*0.05,-ry*1.85);cx.lineTo(rx*0.25,-ry*0.88);cx.fill();
+    cx.beginPath();
+    cx.moveTo(-rx*0.2,ry*0.88);cx.lineTo(-rx*0.05,ry*1.85);cx.lineTo(rx*0.25,ry*0.88);cx.fill();
+  }else if(id==='lion'){
+    for(let s=-4;s<=3;s++){
+      cx.strokeStyle=s%2===0?c1:'#fff3e0';
+      cx.lineWidth=2.4*scaleMult;
+      cx.beginPath();
+      cx.moveTo(s*rx*0.16,-ry*0.7);
+      cx.lineTo(s*rx*0.22-Math.sin(time*5+s)*3,-ry*1.65);
+      cx.stroke();
+    }
+  }else{
+    cx.beginPath();
+    cx.moveTo(-rx*0.3,-ry*0.8);
+    cx.quadraticCurveTo(0,-ry*1.45,rx*0.28,-ry*0.8);
+    cx.closePath();cx.fill();
+  }
+
+  // 3. Main 3D-Shaded Body
+  const grad=cx.createLinearGradient(0,-ry,0,ry);
+  grad.addColorStop(0,c1);
+  grad.addColorStop(0.55,c2);
+  grad.addColorStop(1,'#ffffff');
+  cx.fillStyle=grad;
+
+  cx.beginPath();
+  if(id==='shark'||id==='hammerhead'){
+    cx.moveTo(rx*1.12,ry*0.05);
+    cx.quadraticCurveTo(rx*0.5,-ry*1.05,-rx*0.95,-ry*0.38);
+    cx.lineTo(-rx*0.95,ry*0.38);
+    cx.quadraticCurveTo(rx*0.45,ry*1.02,rx*1.12,ry*0.05);
+  }else{
+    cx.ellipse(0,0,rx,ry,0,0,Math.PI*2);
+  }
+  cx.fill();
+
+  cx.strokeStyle='rgba(0,0,0,0.22)';
+  cx.lineWidth=1.2;
+  cx.stroke();
+
+  // 4. Specular 3D Highlight Sheen
+  cx.fillStyle='rgba(255,255,255,0.34)';
+  cx.beginPath();
+  cx.ellipse(rx*0.08,-ry*0.38,rx*0.65,ry*0.22,0,0,Math.PI*2);
+  cx.fill();
+
+  // 5. Species-Specific Anatomical Markings
+  if(id==='sword'||id==='marlin'){
+    cx.fillStyle=c1;
+    cx.beginPath();
+    cx.moveTo(rx*0.88,-ry*0.14);
+    cx.lineTo(rx*1.9,0);
+    cx.lineTo(rx*0.88,ry*0.14);
+    cx.closePath();cx.fill();
+  }else if(id==='hammerhead'){
+    cx.fillStyle=c1;
+    cx.fillRect(rx*0.82,-ry*0.75,rx*0.26,ry*1.5);
+  }else if(id==='angler'){
+    cx.strokeStyle='#cbd5e1';cx.lineWidth=1.6*scaleMult;
+    cx.beginPath();cx.moveTo(rx*0.4,-ry*0.75);cx.quadraticCurveTo(rx*1.15,-ry*1.3,rx*1.3,-ry*0.25);cx.stroke();
+    cx.fillStyle='#fde047';
+    cx.beginPath();cx.arc(rx*1.3,-ry*0.22,4.5*scaleMult,0,Math.PI*2);cx.fill();
+  }else if(id==='orca'){
+    cx.fillStyle='#ffffff';
+    cx.beginPath();cx.ellipse(rx*0.58,-ry*0.22,rx*0.2,ry*0.14,0,0,Math.PI*2);cx.fill();
+  }else if(id==='tang'){
+    cx.strokeStyle='#09090b';cx.lineWidth=3.5*scaleMult;
+    cx.beginPath();cx.ellipse(-rx*0.05,-ry*0.1,rx*0.48,ry*0.35,0,0,Math.PI);cx.stroke();
+  }else if(id==='butterfly'){
+    cx.fillStyle='#09090b';
+    cx.fillRect(rx*0.42,-ry*0.75,rx*0.14,ry*1.5);
+    cx.beginPath();cx.arc(-rx*0.55,-ry*0.2,baseR*0.22,0,Math.PI*2);cx.fill();
+  }else if(id==='clown'){
+    [-0.42,0.02,0.44].forEach(pos=>{
+      cx.fillStyle='#ffffff';
+      cx.strokeStyle='#111827';
+      cx.lineWidth=1.5*scaleMult;
+      cx.beginPath();
+      cx.roundRect(rx*pos-rx*0.07,-ry*0.88,rx*0.14,ry*1.76,4);
+      cx.fill();cx.stroke();
+    });
+  }else if(id==='mack'||id==='tilapia'){
+    cx.strokeStyle='rgba(15,23,42,0.65)';
+    cx.lineWidth=1.8*scaleMult;
+    for(let k=-4;k<=3;k++){
+      cx.beginPath();
+      cx.moveTo(k*rx*0.18,-ry*0.85);
+      cx.quadraticCurveTo(k*rx*0.18+3,-ry*0.35,k*rx*0.18-2,-ry*0.05);
+      cx.stroke();
+    }
+  }else if(id==='lion'){
+    cx.fillStyle='rgba(127,29,29,0.72)';
+    for(let k=-3;k<=3;k++){
+      cx.fillRect(k*rx*0.22-2,-ry*0.82,4*scaleMult,ry*1.64);
+    }
+  }else if(id==='bream'){
+    cx.strokeStyle='#fbbf24';
+    cx.lineWidth=2.5*scaleMult;
+    cx.beginPath();
+    cx.moveTo(rx*0.52,-ry*0.55);cx.lineTo(rx*0.68,-ry*0.15);
+    cx.stroke();
+  }else if(id==='cod'||id==='grouper'){
+    cx.fillStyle='rgba(55,40,20,0.32)';
+    for(let s=-3;s<=2;s++){
+      cx.beginPath();cx.arc(s*rx*0.22,-ry*0.25,baseR*0.14,0,Math.PI*2);cx.fill();
+    }
+  }else if(id==='tuna'){
+    cx.fillStyle='#facc15';
+    for(let k=1;k<=4;k++){
+      cx.fillRect(-rx*0.42-k*rx*0.11,-ry*0.45,3*scaleMult,3*scaleMult);
+      cx.fillRect(-rx*0.42-k*rx*0.11,ry*0.35,3*scaleMult,3*scaleMult);
+    }
+  }else if(id==='shark'){
+    cx.strokeStyle='rgba(15,23,42,0.6)';
+    cx.lineWidth=1.4*scaleMult;
+    for(let g=0;g<5;g++){
+      cx.beginPath();
+      cx.moveTo(rx*0.28+g*3.5*scaleMult,-ry*0.18);
+      cx.lineTo(rx*0.26+g*3.5*scaleMult,ry*0.24);
+      cx.stroke();
+    }
+  }
+
+  // 6. Animated Pectoral Fin
+  cx.save();
+  cx.translate(rx*0.22,ry*0.22);
+  cx.rotate(Math.sin(time*6)*0.3);
+  cx.fillStyle=c1;
+  cx.beginPath();
+  cx.moveTo(0,0);
+  cx.lineTo(-baseR*0.55,baseR*0.48);
+  cx.lineTo(-baseR*0.15,baseR*0.52);
+  cx.closePath();cx.fill();
+  cx.restore();
+
+  // 7. 3D Eye with Specular Glint
+  const ex=rx*0.58,ey=-ry*0.18,er=Math.max(2.6,baseR*0.2);
+  cx.fillStyle='#ffffff';
+  cx.beginPath();cx.arc(ex,ey,er,0,Math.PI*2);cx.fill();
+  cx.fillStyle='#0f172a';
+  cx.beginPath();cx.arc(ex+er*0.22,ey,er*0.55,0,Math.PI*2);cx.fill();
+  cx.fillStyle='#ffffff';
+  cx.beginPath();cx.arc(ex+er*0.35,ey-er*0.25,er*0.22,0,Math.PI*2);cx.fill();
+
+  cx.restore();
+}
+
+/* ---------- 4 Boats + Caught Fish Inside Boat + 9 Rods ---------- */
+function drawBoatAndFisherman(surfY,time){
+  const b=BOATS[S.boat];
+  const bx=175,bw=195;
+
+  cx.save();
+  const bob=Math.sin(time*2.2)*2.2;
+  cx.translate(0,bob);
+
+  // Caught fish resting visibly inside the boat deck well
+  const deckFish=S.deck.slice(-b[2]);
+  deckFish.forEach((fid,idx)=>{
+    const f=F.find(x=>x[0]===fid);
+    if(!f)return;
+    const col=idx%4,row=Math.floor(idx/4);
+    const fx=bx+36+col*34+(row*8);
+    const fy=surfY-10-row*9;
+    drawFish3D(f,fx,fy,idx%2===0?1:-1,0.42,0);
+  });
+
+  if(S.boat===0){
+    cx.fillStyle=b[3];
+    cx.beginPath();
+    cx.moveTo(bx,surfY-14);cx.lineTo(bx+bw,surfY-14);
+    cx.lineTo(bx+bw-24,surfY+14);cx.lineTo(bx+20,surfY+14);
+    cx.closePath();cx.fill();
+    cx.strokeStyle=b[4];cx.lineWidth=2.5;cx.stroke();
+    cx.fillStyle=b[5];cx.fillRect(bx+28,surfY-16,16,5);
+  }else if(S.boat===1){
+    cx.fillStyle=b[3];
+    cx.beginPath();
+    cx.moveTo(bx-10,surfY-16);cx.lineTo(bx+bw+16,surfY-20);
+    cx.lineTo(bx+bw-16,surfY+14);cx.lineTo(bx+14,surfY+14);
+    cx.closePath();cx.fill();
+    cx.fillStyle=b[4];
+    cx.beginPath();
+    cx.moveTo(bx-2,surfY-6);cx.lineTo(bx+bw+8,surfY-8);
+    cx.lineTo(bx+bw,surfY+2);cx.lineTo(bx+6,surfY+2);
+    cx.closePath();cx.fill();
+    cx.fillStyle=b[5];
+    cx.beginPath();cx.moveTo(bx+115,surfY-18);cx.lineTo(bx+142,surfY-34);cx.lineTo(bx+152,surfY-18);cx.closePath();cx.fill();
+  }else if(S.boat===2){
+    cx.fillStyle=b[3];
+    cx.beginPath();
+    cx.moveTo(bx-20,surfY-18);cx.lineTo(bx+bw+24,surfY-22);
+    cx.lineTo(bx+bw-14,surfY+16);cx.lineTo(bx+10,surfY+16);
+    cx.closePath();cx.fill();
+    cx.fillStyle=b[4];cx.fillRect(bx-6,surfY-6,bw+18,8);
+    cx.fillStyle='#f1f5f9';cx.fillRect(bx+18,surfY-44,82,26);
+    cx.fillStyle=b[4];cx.fillRect(bx+26,surfY-38,18,12);cx.fillRect(bx+52,surfY-38,18,12);
+    cx.fillStyle=b[5];cx.fillRect(bx+14,surfY-47,90,4);
+  }else{
+    cx.fillStyle=b[3];
+    cx.beginPath();
+    cx.moveTo(bx-26,surfY-20);cx.lineTo(bx+bw+30,surfY-24);
+    cx.lineTo(bx+bw-12,surfY+18);cx.lineTo(bx+8,surfY+18);
+    cx.closePath();cx.fill();
+    cx.strokeStyle=b[5];cx.lineWidth=3;cx.stroke();
+    cx.fillStyle=b[4];cx.fillRect(bx+14,surfY-50,86,30);
+    cx.fillStyle=b[5];cx.fillRect(bx+22,surfY-42,16,12);cx.fillRect(bx+46,surfY-42,16,12);cx.fillRect(bx+70,surfY-42,16,12);
+    cx.fillRect(bx+48,surfY-68,5,18);
+    cx.beginPath();cx.arc(bx+50,surfY-70,6,0,Math.PI*2);cx.fill();
+  }
+
+  const fx=bx+bw-22,fy=surfY-16;
+  cx.fillStyle='#f4c28b';cx.beginPath();cx.arc(fx,fy-20,8.5,0,Math.PI*2);cx.fill();
+  cx.fillStyle='#0f172a';cx.fillRect(fx-9,fy-28,18,4);cx.fillStyle='#fff';cx.fillRect(fx-6,fy-32,12,4);
+  cx.fillStyle='#0284c7';cx.fillRect(fx-8,fy-11,16,13);
+
+  const rod=RODS[S.rod];
+  const tipX=hx,tipY=surfY-68-S.rod*2.5;
+  if(S.rod>=7){
+    cx.shadowColor=rod[5];
+    cx.shadowBlur=14;
+  }
+  cx.strokeStyle=rod[4];
+  cx.lineWidth=2.6+S.rod*0.42;
+  cx.beginPath();
+  cx.moveTo(fx+4,fy-6);
+  cx.quadraticCurveTo((fx+tipX)*0.5,tipY-8,tipX,tipY);
+  cx.stroke();
+
+  cx.strokeStyle=rod[5];
+  cx.lineWidth=1.4;
+  cx.beginPath();
+  cx.moveTo(fx+18,fy-14);
+  cx.lineTo(tipX,tipY);
+  cx.stroke();
+  cx.shadowBlur=0;
+
+  if(S.rod===8){
+    cx.strokeStyle='#00f5d4';cx.lineWidth=2;
+    cx.beginPath();
+    cx.moveTo(tipX-5,tipY-6);cx.lineTo(tipX,tipY);cx.lineTo(tipX+5,tipY-6);
+    cx.stroke();
+  }
+
+  cx.restore();
+  return{tipX,tipY:tipY+bob};
+}
+
+/* ---------- Main Animation Loop ---------- */
+function loop(){
+  requestAnimationFrame(loop);
+  if(cv.offsetParent===null)return;
+  const W=720,H=410,now=Date.now()/1000;
+
+  const PX_PER_M=3.2;
+  const activeDepthM=ph==='idle'?S.targetDepth:Math.max(5,(hy-SURFACE_Y)/PX_PER_M);
+  const desiredDepth=Math.max(0,activeDepthM-35);
+  const targetCamY=desiredDepth*PX_PER_M;
+  camY+=(targetCamY-camY)*0.08;
+
+  /* Dynamic Ocean Expansion: deeper depth widens the underwater field of view */
+  const depthFactor=Math.min(1,Math.max(0,(activeDepthM-5)/495));
+  const targetZoom=1-depthFactor*0.36;
+  seaZoom+=(targetZoom-seaZoom)*0.06;
+  const visW=W/seaZoom;
+  const visLeft=hx-hx/seaZoom;
+  const visRight=visLeft+visW;
+
+  cx.clearRect(0,0,W,H);
+  cx.save();
+  cx.translate(hx,H*0.5);
+  cx.scale(seaZoom,seaZoom);
+  cx.translate(-hx,-H*0.5);
+
+  const surfScreenY=SURFACE_Y-camY;
+  const padTop=-H/seaZoom,padBot=H*1.6/seaZoom;
+  if(surfScreenY>padTop){
+    const skyG=cx.createLinearGradient(0,padTop,0,surfScreenY);
+    skyG.addColorStop(0,'#7dd3fc');
+    skyG.addColorStop(1,'#e0f2fe');
+    cx.fillStyle=skyG;
+    cx.fillRect(visLeft-40,padTop,visW+80,surfScreenY-padTop);
+  }
+
+  const waterTop=Math.max(padTop,surfScreenY);
+  const depthRatio=Math.min(1,camY/(500*PX_PER_M));
+  const wg=cx.createLinearGradient(0,waterTop,0,padBot);
+  if(depthRatio<0.25){
+    wg.addColorStop(0,'#0ea5e9');
+    wg.addColorStop(1,'#0369a1');
+  }else if(depthRatio<0.6){
+    wg.addColorStop(0,'#0369a1');
+    wg.addColorStop(1,'#1e1b4b');
+  }else{
+    wg.addColorStop(0,'#1e1b4b');
+    wg.addColorStop(1,'#020617');
+  }
+  cx.fillStyle=wg;
+  cx.fillRect(visLeft-40,waterTop,visW+80,padBot-waterTop);
+
+  /* Distant Deep-Sea Canyon & Reef Silhouettes that widen with depth */
+  if(depthFactor>0.12){
+    cx.fillStyle='rgba(2,6,23,'+(0.18+depthFactor*0.25)+')';
+    cx.beginPath();
+    cx.moveTo(visLeft-40,padBot);
+    cx.lineTo(visLeft-40,H*0.62);
+    cx.quadraticCurveTo(visLeft+90,H*0.42,visLeft+170,padBot);
+    cx.fill();
+    cx.beginPath();
+    cx.moveTo(visRight+40,padBot);
+    cx.lineTo(visRight+40,H*0.58);
+    cx.quadraticCurveTo(visRight-100,H*0.38,visRight-180,padBot);
+    cx.fill();
+  }
+
+  if(surfScreenY>-220){
+    cx.fillStyle='rgba(255,255,255,0.07)';
+    for(let r=0;r<6;r++){
+      cx.beginPath();
+      cx.moveTo(visLeft+90+r*165,Math.max(padTop,surfScreenY));
+      cx.lineTo(visLeft+20+r*165,padBot);
+      cx.lineTo(visLeft+160+r*165,padBot);
+      cx.closePath();cx.fill();
+    }
+  }
+
+  if(surfScreenY>padTop-20&&surfScreenY<padBot+20){
+    cx.fillStyle='rgba(255,255,255,0.35)';
+    cx.beginPath();
+    cx.moveTo(visLeft-40,surfScreenY);
+    for(let x=visLeft-40;x<=visRight+40;x+=14)cx.lineTo(x,surfScreenY+Math.sin(x/28+now*3)*3.5);
+    cx.lineTo(visRight+40,surfScreenY+10);cx.lineTo(visLeft-40,surfScreenY+10);cx.fill();
+  }
+
+  cx.fillStyle='rgba(255,255,255,0.5)';
+  cx.font='bold 12px system-ui';
+  cx.textAlign='left';
+  for(let dm=20;dm<=500;dm+=20){
+    const my=SURFACE_Y+dm*PX_PER_M-camY;
+    if(my>padTop+14&&my<padBot-10){
+      cx.fillRect(visLeft+6,my,16,1.5);
+      cx.fillText(dm+'m',visLeft+26,my+4);
+    }
+  }
+
+  if(Math.random()<0.1)bb.push({x:visLeft+Math.random()*visW,y:camY+padBot,r:1.8+Math.random()*3});
+  cx.strokeStyle='rgba(255,255,255,0.35)';
+  bb.forEach(b=>{
+    b.y-=0.9;
+    const sy=b.y-camY;
+    if(sy>surfScreenY&&sy<padBot){cx.beginPath();cx.arc(b.x,sy,b.r,0,Math.PI*2);cx.stroke();}
+  });
+  bb=bb.filter(b=>b.y>SURFACE_Y);
+
+  bgFish.forEach(o=>{
+    o.x+=o.d*o.s;
+    if(o.x>visRight+140)o.x=visLeft-140;
+    if(o.x<visLeft-140)o.x=visRight+140;
+    const sy=SURFACE_Y+o.depth*PX_PER_M-camY;
+    if(sy>padTop-70&&sy<padBot+70){
+      drawFish3D(o.f,o.x,sy,o.d,0.75,now+o.phase);
+      if(hasAcc('sonar')){
+        cx.fillStyle='rgba(134,239,172,0.9)';
+        cx.font='600 10px system-ui';
+        cx.textAlign='center';
+        cx.fillText(fname(o.f)+' · '+o.f[3]+'kg',o.x,sy-22);
+      }
+    }
+  });
+
+  let tip={tipX:hx,tipY:surfScreenY-65};
+  if(surfScreenY>padTop-110){
+    tip=drawBoatAndFisherman(surfScreenY,now);
+  }
+
+  const targetHookY=SURFACE_Y+S.targetDepth*PX_PER_M;
+  const speedMult=hasAcc('reel')||S.rod===5?1.85:1;
+
+  if(ph==='idle'){
+    hy+=(SURFACE_Y-8-hy)*0.15;
+  }else if(ph==='down'){
+    hy+=3.6*speedMult;
+    if(hy>=targetHookY){
+      hy=targetHookY;
+      ph='wait';
+      const chosen=pickTargetFish(S.targetDepth);
+      const fromLeft=Math.random()<0.5;
+      tgt={f:chosen,x:fromLeft?visLeft-90:visRight+90,y:hy+15,d:fromLeft?1:-1};
+    }
+  }else if(ph==='wait'){
+    tgt.d=tgt.x<hx?1:-1;
+    tgt.x+=tgt.d*2.5;
+    tgt.y+=(hy-tgt.y)*0.07;
+    if(Math.abs(tgt.x-hx)<18){
+      if(tgt.f[3]>effMaxWeight()){
+        const heavyFish=tgt.f;
+        ph='flee';tgt.d=-tgt.d;
+        sfx('bad');
+        msg('⚖️ <b>'+esc(fname(heavyFish))+' ('+heavyFish[3]+' kg)</b><br>'+t('tooHeavy'));
+      }else if(tgt.f[7]>0){
+        let dmg=tgt.f[7];
+        if(S.rod===3||S.rod===7)dmg=Math.max(1,dmg-1);
+        S.hookHp=Math.max(0,S.hookHp-dmg);
+        save();syncDepthUI();
+        if(S.hookHp<=0){
+          S.hook=0;S.hookHp=1;
+          save();syncDepthUI();
+          ph='flee';tgt.d=-tgt.d;
+          sfx('snap');
+          msg(t('hookBroke'));
+        }else{
+          ph='quiz';
+          sfx('bite');
+          banner=t('predWarn')+' (-'+dmg+')';bannerT=120;
+          setTimeout(()=>{
+            const nq=nextQ();
+            if(nq.q)showQ(nq.q);
+            else{ph='idle';tgt=null;msg(t(nq.e));}
+          },320);
+        }
+      }else{
+        ph='quiz';
+        sfx('bite');
+        setTimeout(()=>{
+          const nq=nextQ();
+          if(nq.q)showQ(nq.q);
+          else{ph='idle';tgt=null;msg(t(nq.e));}
+        },320);
+      }
+    }
+  }else if(ph==='reeling'){
+    hy-=5.2*speedMult;
+    if(tgt){tgt.x=hx;tgt.y=hy+8;}
+    if(hy<=SURFACE_Y-10){
+      landFishInBoat(tgt.f);
+    }
+  }else if(ph==='flee'){
+    hy+=(SURFACE_Y-8-hy)*0.12;
+    if(tgt){
+      tgt.x+=tgt.d*5.6;
+      if(tgt.x<visLeft-160||tgt.x>visRight+160){tgt=null;ph='idle';}
+    }else ph='idle';
+  }
+
+  const hookScreenY=hy-camY;
+  const lineTopY=surfScreenY>padTop-110?tip.tipY:padTop;
+  cx.strokeStyle='rgba(255,255,255,0.85)';
+  cx.lineWidth=hasAcc('kevlar')?2.2:1.4;
+  cx.beginPath();
+  cx.moveTo(hx,lineTopY);
+  cx.lineTo(hx,hookScreenY);
+  cx.stroke();
+
+  if(hasAcc('light')&&hookScreenY>surfScreenY){
+    const lg=cx.createRadialGradient(hx,hookScreenY,4,hx,hookScreenY,145);
+    lg.addColorStop(0,'rgba(52,211,153,0.45)');
+    lg.addColorStop(1,'rgba(52,211,153,0)');
+    cx.fillStyle=lg;
+    cx.beginPath();cx.arc(hx,hookScreenY,145,0,Math.PI*2);cx.fill();
+  }
+
+  cx.strokeStyle=HOOKS[S.hook][3];
+  cx.lineWidth=2.6;
+  cx.beginPath();
+  cx.arc(hx-3,hookScreenY+4,5,0,Math.PI*1.25);
+  cx.stroke();
+
+  if(tgt){
+    const ty=tgt.y-camY;
+    drawFish3D(tgt.f,tgt.x,ty,ph==='reeling'?1:tgt.d,1.08,now);
+    if(hasAcc('sonar')){
+      cx.fillStyle='#fde047';
+      cx.font='bold 11px system-ui';
+      cx.textAlign='center';
+      cx.fillText('📡 '+fname(tgt.f)+' ('+tgt.f[3]+' kg)',tgt.x,ty-30);
+    }
+  }
+
+  cx.restore(); // End world-space zoom transform; draw fixed screen-space HUD overlays
+
+  if(hasAcc('sonar')){
+    const rx=W-62,ry=62,rr=46;
+    cx.save();
+    cx.fillStyle='rgba(6,24,44,0.78)';
+    cx.strokeStyle='#22c55e';cx.lineWidth=2;
+    cx.beginPath();cx.arc(rx,ry,rr,0,Math.PI*2);cx.fill();cx.stroke();
+    const ang=(now*2.5)%(Math.PI*2);
+    cx.strokeStyle='rgba(34,197,94,0.65)';
+    cx.beginPath();cx.moveTo(rx,ry);cx.lineTo(rx+Math.cos(ang)*rr,ry+Math.sin(ang)*rr);cx.stroke();
+    bgFish.slice(0,10).forEach((o,idx)=>{
+      const bx2=rx+Math.cos(idx*0.9+o.x*0.01)*28;
+      const by2=ry+Math.sin(idx*0.9+o.depth*0.02)*28;
+      cx.fillStyle='#4ade80';
+      cx.beginPath();cx.arc(bx2,by2,2.4,0,Math.PI*2);cx.fill();
+    });
+    if(tgt){
+      cx.fillStyle='#fbbf24';
+      cx.beginPath();cx.arc(rx,ry,4,0,Math.PI*2);cx.fill();
+    }
+    cx.restore();
+  }
+
+  if(bannerT>0){
+    bannerT--;
+    cx.save();
+    cx.fillStyle='rgba(15,23,42,0.82)';
+    cx.beginPath();cx.roundRect(W/2-155,14,310,34,14);cx.fill();
+    cx.fillStyle='#fde047';cx.font='bold 14px system-ui';cx.textAlign='center';
+    cx.fillText(banner,W/2,36);
+    cx.restore();
+  }
+
+  $('#hint').textContent=
+    ph==='wait'?t('wt'):
+    ph==='reeling'?t('rlng'):'';
+}
+
+apply();
+loop();
+</script>
+</body>
+</html>
